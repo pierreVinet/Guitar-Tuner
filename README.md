@@ -119,7 +119,7 @@
 
 ## Microphones and code
 - There are 4 digital microphones present on the e-puck2, they modulate the sound received into a digital signal
-- Then the microcontroller needs to demodulate these signals in order to obtain analog signals ([**PDM audio software decoding on STM32 microcontrollers**](http://www.st.com/content/ccc/resource/technical/document/application_note/ca/18/be/bb/f8/53/47/a5/DM00040808.pdf/files/DM00040808.pdf/jcr:content/translations/en.DM00040808.pdf))
+- Then the microcontroller needs to demodulate these signals in order to obtain analog signals ([**PDM to PCM filter**](#pdm-to-pcm-filter))
 - During the demodulation process, a Low Pass Filter and a High Pass Filter are applied
 - The Low Pass Filter is very useful to removes the DC offset of the signal (the analog signal obtained after the demodulation will oscillate around 0 instead of having an offset)
 - This means you also remove the low frequencies from the result of the FFT, which could easily have the highest frequency peaks on the FFT's result
