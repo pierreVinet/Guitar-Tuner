@@ -45,7 +45,7 @@
             },
             "windows": {
                 // DONT FORGET To change the Library name in the second parameter on the link command
-                "command": "LIB=e-puck2_main-processor; if [ -d $LIB ] ; then echo -n -e '\\033[0;91m'Link $LIB already present ; echo '\\033[0m'>>/dev/null ; else cmd <<< \"mklink /J $LIB ${config:workplaceAS}\\Lib\\e-puck2_main-processor & exit\" >>/dev/null; echo -n -e '\\033[1;32m'Link $LIB done ! ; echo '\\033[0m'>>/dev/null ; fi ; echo '\n'",
+                "command": "LIB=e-puck2_main-processor; if [ -d $LIB ] ; then echo -n -e '\\033[0;91m'Link $LIB already present ; echo '\\033[0m'>>/dev/null ; else C://Windows//System32//cmd.exe <<< \"mklink /J $LIB ${config:workplaceAS}\\Lib\\e-puck2_main-processor & exit\" >>/dev/null; echo -n -e '\\033[1;32m'Link $LIB done ! ; echo '\\033[0m'>>/dev/null ; fi ; echo '\n'",
             },
             "group": {
                 "kind": "build",

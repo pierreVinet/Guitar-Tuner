@@ -1,6 +1,4 @@
 # Introduction
-- Controlling the e-puck2 with sound
-- ChibiOS: a RTOS optimized for the execution speed and the size of the code, it contains a lot of drivers to use the peripherals of the STM32 families
 - `Goal`: Controlling the e-puck2 by detecting sound frequencies with the microphones and FFT
 - `⏱ Duration`: 4 hours
 - `Equipment`: EPuck2 robot, ChibiOS library, Python
@@ -26,9 +24,13 @@
     - Using the FFT with real sounds received by the microphones and sending them to the computer to visualize them
     - Coding a simple frequency detection function in order to control the robot with chosen frequencies
 
-## ⚠ Setup of the project
-- execute the command `git checkout reference/TP5_Exercise`
-    - all the files related to this lab should now be downloaded in your Workplace folder
+## ⚠ ToDo before starting the Lab
+- To pull the TP5_Exercise branch, please refer to this [wiki page on fetching exercises and solutions](https://github.com/EPFL-MICRO-315/TPs-Student/wiki/Git-Fetching-Exercises-Solutions)
+- Don't forget to push this branch with the upstream enabled to your origin remote
+- Once on the branch `TP5_Exercise`, link the `e-puck2_main-processor` library by running the task `Link Library e-puck2_main-processor`
+    <p float="left">
+        <img src="pictures/linkLib.png" alt="drawing" width="200"/>
+    </p>
 
 ## Files in the project
 - **fft.*** Files containing the functions to performs FFT
@@ -45,7 +47,7 @@
     - Below, you have a plot of the result received from the robot (if any)
     - On the bottom, two sliders to change the frequency and the amplitude of the signal
 >### Figure 1
->Python script interface you get when launching plotFFT.py
+>Python script interface you get when launching **plotFFT.py**
     <p float="left">
     <img src="pictures/python_result.png" alt="drawing" width="700"/>
     </p>
