@@ -4,7 +4,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "TP5 Exercise: Make",
+            "label": "TP5 Solution: Make",
             "type": "shell",
             "command": "${config:make_path} -j",
             "group": {
@@ -20,7 +20,7 @@
             }
         },
         {
-            "label": "TP5 Exercise: Clean",
+            "label": "TP5 Solution: Clean",
             "type": "shell",
             "command": "${config:make_path} clean",
             "group": {
@@ -35,7 +35,7 @@
             }
         },
         {
-            "label": "TP5 Exercise:(Link Library e-puck2_main-processor)",
+            "label": "TP5 Solution:(Link Library e-puck2_main-processor)",
             "type": "shell",
             "linux": {
                 "command": "LIB=e-puck2_main-processor; if [ -d $LIB ] ; then echo -n -e '\\033[0;91m'Link $LIB already present ; echo '\\033[0m'>>/dev/null ; else ln -s ${config:workplace}/Lib/$LIB . ; echo -n -e '\\033[1;32m'Link $LIB done ! ; echo '\\033[0m'>>/dev/null ; fi ; echo '\n'",

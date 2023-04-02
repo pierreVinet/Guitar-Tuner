@@ -289,15 +289,17 @@ fig.canvas.mpl_connect('close_event', handle_close) #to detect when the window i
 
 #sinus graph config with initial plot
 graph_sinus = plt.subplot(211)
-graph_sinus.set_title('Signal intensity vs Sample')
+graph_sinus.set_title('Signal intensity vs Sample - 1024 samples at 300Hz')
 sinus = do_sinus(f0,A)
 sinus_plot, = plt.plot(sinus, lw=1, color='red')
+# plt.xlabel("Sample")
 plt.ylabel("Amplitude")
 
 #FFT graph config with initial plot
 graph_fft = plt.subplot(212)
 graph_fft.set_title('Magnitude of Fourier transform: Intensities vs Frequency domain')
 fft_plot, = plt.plot(np.arange(-n/2,n/2,1), do_fft(sinus),lw=1, color='red')
+# plt.xlabel("Frequency")
 plt.ylabel("norm")
 
 #timer to update the plot from within the state machine of matplotlib
