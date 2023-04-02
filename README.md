@@ -161,7 +161,9 @@
 # Bibliography
 
 ### DSP Concepts
-- [Example of C optimization with DPS functions](https://www.arm.com/files/pdf/DSPConceptsM4Presentation.pdf)
+- [Example of C optimization with DPS functions](https://github.com/EPFL-MICRO-315/TPs-Student/wiki/datasheets/DSPConceptsM4Presentation.pdf)
+- [Digital Signal Processing using Arm® Cortex®-M based
+Microcontrollers](https://github.com/EPFL-MICRO-315/TPs-Student/wiki/datasheets/digital-signal-processing.pdf)
 
 ### PDM to PCM filter
-- [PDM audio software decoding on STM32 microcontrollers](http://www.st.com/content/ccc/resource/technical/document/application_note/ca/18/be/bb/f8/53/47/a5/DM00040808.pdf/files/DM00040808.pdf/jcr:content/translations/en.DM00040808.pdf)
+- [AN3998 - ST Application note - PDM audio software decoding on STM32 microcontrollers](https://github.com/EPFL-MICRO-315/TPs-Student/wiki/datasheets/en.DM00040808.pdf)    

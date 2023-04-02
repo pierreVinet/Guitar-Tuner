@@ -5,12 +5,6 @@
             "forcedInclude": ["${config:workplace}//Lib//e-puck2_main-processor//ChibiOS//os//ext//CMSIS//ST//stm32f407xx.h"],
             "includePath": [
                 "${config:gcc_arm_path}//arm-none-eabi//include//",
-                // I don't have this version under any OS
-                // "${config:gcc_arm_path}//lib//gcc//arm-none-eabi//10.3.1//include//",
-                // ToDo : Check but for me the src project folder must not be added. Must be test - Dany
-                // I guess it is safer to have the src included just in case - Antoine
-                // It is really not necessary - Dany
-                // "${workspaceFolder}//src//",
                 "${config:workplace}//Lib//e-puck2_main-processor//src//",
                 "${config:workplace}//Lib//e-puck2_main-processor//src//msgbus//",
                 "${config:workplace}//Lib//e-puck2_main-processor//ChibiOS//os//common//ports//ARMCMx//devices//STM32F4xx//",

@@ -292,6 +292,7 @@ graph_sinus = plt.subplot(211)
 graph_sinus.set_title('Signal intensity vs Sample')
 sinus = do_sinus(f0,A)
 sinus_plot, = plt.plot(sinus, lw=1, color='red')
+plt.ylabel("Amplitude")
 
 #FFT graph config with initial plot
 graph_fft = plt.subplot(212)

@@ -182,6 +182,19 @@ class serial_thread(Thread):
     def stop_reading(self, val):
         self.contReceive = False
 
+    #send control command
+    def send_red_cmd(self, val):
+        self.port.write('r'.encode('utf-8'))
+
+    def send_green_cmd(self, val):
+        self.port.write('g'.encode('utf-8'))
+
+    def send_blue_cmd(self, val):
+        self.port.write('b'.encode('utf-8'))
+
+    def toogle_motors_cmd(self, val):
+        self.port.write('m'.encode('utf-8'))
+
     #tell the plot need to be updated
     def tell_to_update_plot(self):
         self.need_to_update = True
@@ -216,10 +229,8 @@ reader_thd = serial_thread(sys.argv[1])
 reader_thd.start()
 
 #figure config
-# fig, ax = plt.subplots(num=None, figsize=(10, 8), dpi=80)
 fig, ax = plt.subplots(num='CamReg plot', figsize=(10, 8), dpi=80)
 ax.set_title('Pixel intensity vs Horizontal position')
-# fig.canvas.set_window_title('CamReg plot')
 plt.subplots_adjust(left=0.1, bottom=0.25)
 fig.canvas.mpl_connect('close_event', handle_close) #to detect when the window is closed and if we do a ctrl-c
 
@@ -238,16 +249,29 @@ timer.start()
 
 #positions of the buttons, sliders and radio buttons
 colorAx             = 'lightgoldenrodyellow'
-receiveAx           = plt.axes([0.4, 0.025, 0.1, 0.04])
-stopAx              = plt.axes([0.5, 0.025, 0.1, 0.04])
+receiveAx           = plt.axes([0.2, 0.075, 0.1, 0.04])
+stopAx              = plt.axes([0.3, 0.075, 0.1, 0.04])
+redDetectAx         = plt.axes([0.5, 0.125, 0.15, 0.04])
+greenDetectAx       = plt.axes([0.5, 0.075, 0.15, 0.04])
+blueDetectAx        = plt.axes([0.5, 0.025, 0.15, 0.04])
+motorsEnableAx      = plt.axes([0.7, 0.075, 0.2, 0.04])
 
 #config of the buttons, sliders and radio buttons
 receiveButton           = Button(receiveAx, 'Start reading', color=colorAx, hovercolor='0.975')
 stop                    = Button(stopAx, 'Stop reading', color=colorAx, hovercolor='0.975')
+#added buttons
+redDetectButton         = Button(redDetectAx, 'Red detection', color=colorAx, hovercolor='0.975')
+greenDetectButton       = Button(greenDetectAx, 'Green detection', color=colorAx, hovercolor='0.975')
+blueDetectButton        = Button(blueDetectAx, 'Blue detection', color=colorAx, hovercolor='0.975')
+enableMotorsButton      = Button(motorsEnableAx, 'Toogle motor\'s enable', color=colorAx, hovercolor='0.975')
 
 #callback config of the buttons, sliders and radio buttons
 receiveButton.on_clicked(reader_thd.setContReceive)
 stop.on_clicked(reader_thd.stop_reading)
+redDetectButton.on_clicked(reader_thd.send_red_cmd)
+greenDetectButton.on_clicked(reader_thd.send_green_cmd)
+blueDetectButton.on_clicked(reader_thd.send_blue_cmd)
+enableMotorsButton.on_clicked(reader_thd.toogle_motors_cmd)
 
 #starts the matplotlib main
 plt.show()
