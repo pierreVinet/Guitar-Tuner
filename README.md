@@ -1,7 +1,7 @@
 # Task 1: Result of the FFT
-- The result of the FFT gives us 2 symmetrical peaks on the plot
-- We can see that increasing the frequency with the slider moves the peaks toward the center of the plot
-- Thus the position of the peaks directly gives us the frequency present in the signal, 150Hz putting the peaks on the center of the plot and 0Hz putting them on the borders
+- The result of the FFT gives you 2 symmetrical peaks on the plot
+- You can see that increasing the frequency with the slider moves the peaks toward the center of the plot
+- Thus the position of the peaks directly gives you the frequency present in the signal, 150Hz putting the peaks on the center of the plot and 0Hz putting them on the borders
 - Therefore for better visualization, the zero is placed on the center of the plot
 ---
 - Then by knowing that the sampling frequency of the signal sent by the script is 300Hz, we can assume the maximum frequency we can detect correctly with the FFT is half of the sampling frequency of the signal
