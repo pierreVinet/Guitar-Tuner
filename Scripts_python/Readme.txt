@@ -20,7 +20,7 @@ Usage:
 
   For TP5:
 	-Run the script plotFFT.py in the terminal and give to it the com port as argument
-	 example : « python path_to_the_script\plotFFT.py comX » (for Windows)
+	 example : « python Scripts_python\plotFFT.py com12 » (for Windows)
 	 or      : « python3 path_to_the_script/plotFFT.py /dev/cu.usbmodemXXXX » (for Mac)
 
 

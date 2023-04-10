@@ -6,5 +6,5 @@
     //      -> "com_port": "/dev/ttyACMx"
     // MacOS: use the command "ls /dev/cu.*" and use the lowest one
     //      -> "com_port": "/dev/cu.usbmodemEPUCKx"
-    "com_port": "/dev/cu.usbmodemEPUCK1",
+    "com_port": "\\\\.\\COM11",
 }
