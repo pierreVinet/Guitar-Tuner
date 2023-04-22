@@ -1,0 +1,18 @@
+# Normally required only for TPs preceding TP3
+# But keep at less always ST if bad use of
+# "Link Library ST" task in TP3 or following
+ST/
+ST
+
+# Normally required only for TP3 and following
+e-puck2_main-processor/
+e-puck2_main-processor
+build/
+.dep/
+*.a
+
+# MacOS specific files but always use if another user can work under MacOS
+.DS_Store
+
+# Windows specific files but always use if another user can work under Windows
+Thumbs.db
