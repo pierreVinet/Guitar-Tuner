@@ -38,7 +38,6 @@ int fft_c(int lx, complex_float *cx, float signi)
 		if (i <= j)
 		{
 			// Swap coefficients
-			//
 			ct.real = cx[j].real;
 			ct.imag = cx[j].imag;
 			cx[j].real = cx[i].real;

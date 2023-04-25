@@ -7,7 +7,7 @@
         {
             "name": "BMP launch to main",
             "cwd": "${workspaceRoot}/src",
-            "executable": "${workspaceRoot}/src/build/Noisy.elf",
+            "executable": "${workspaceRoot}/src/build/Guitar_tuner.elf",
             "request": "launch",
             "type": "cortex-debug",
             "servertype": "bmp",
@@ -23,7 +23,7 @@
         {
             "name": "BMP launch to reset (PC=0)",
             "cwd": "${workspaceRoot}/src",
-            "executable": "${workspaceRoot}/src/build/Noisy.elf",
+            "executable": "${workspaceRoot}/src/build/Guitar_tuner.elf",
             "request": "launch",
             "type": "cortex-debug",
             "servertype": "bmp",
@@ -39,7 +39,7 @@
         {
             "name": "BMP attach",
             "cwd": "${workspaceRoot}/src",
-            "executable": "${workspaceRoot}/src/build/Noisy.elf",
+            "executable": "${workspaceRoot}/src/build/Guitar_tuner.elf",
             "request": "attach",
             "type": "cortex-debug",
             "servertype": "bmp",
