@@ -120,20 +120,29 @@ static THD_FUNCTION(PerpendicularCalibration, arg)
 
     while (1)
     {
-        if (calibrating)
+        // checks if the Finite State Machine is in the correct state
+        if (get_FSM_state() == PERPENDICULAR_CALIBRATION)
         {
-            set_front_led(1);
-            chThdSleepMilliseconds(500);
-            calibrating = calibration(VL53L0X_get_dist_mm());
-            set_front_led(0);
-            chThdSleepMilliseconds(500);
+            if (calibrating)
+            {
+                set_front_led(1);
+                chThdSleepMilliseconds(500);
+                calibrating = calibration(VL53L0X_get_dist_mm());
+                set_front_led(0);
+                chThdSleepMilliseconds(500);
+            }
+            else
+            {
+                set_body_led(1);
+                set_FSM_state(FREQUENCY_DETECTION);
+                chThdSleepMilliseconds(1000);
+                // set_body_led(0);
+                // chThdSleepMilliseconds(1000);
+            }
         }
         else
         {
-            set_body_led(1);
-            chThdSleepMilliseconds(1000);
-            set_body_led(0);
-            chThdSleepMilliseconds(1000);
+            chThdSleepMilliseconds(200);
         }
     }
 }

@@ -19,4 +19,14 @@ extern "C"
 }
 #endif
 
+typedef enum
+{
+    PERPENDICULAR_CALIBRATION = 0,
+    FREQUENCY_DETECTION
+
+} FSM_STATE;
+
+FSM_STATE get_FSM_state(void);
+void set_FSM_state(FSM_STATE new_state);
+
 #endif

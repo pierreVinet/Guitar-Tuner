@@ -75,7 +75,7 @@ void doFFT_optimized(uint16_t size, float *complex_buffer)
 uint16_t find_highest_peak(float *data)
 {
     float max_norm = MIN_VALUE_THRESHOLD;
-    int16_t max_norm_index = -1;
+    int16_t max_norm_index = 0;
 
     // search for the highest peak
     for (uint16_t i = MIN_FREQ; i <= MAX_FREQ; i++)
@@ -130,66 +130,71 @@ GUITAR_STRING find_guitar_note(void)
  */
 void processAudioData(int16_t *data, uint16_t num_samples)
 {
-    /*
-     *
-     *	We get 160 samples per mic every 10ms
-     *	So we fill the samples buffers to reach
-     *	1024 samples, then we compute the FFTs.
-     *
-     */
-
-    static uint16_t nb_samples = 0;
-
-    // loop to fill the input buffers with the sample for the real part and 0 for the imaginary part
-    // data contains the sample of all 4 mics: [mic1, mic2, mic3, mic4, mic1, mic2...]
-    // if I want only the samples of 1 mic at 16kHz: i+= 4*1
-    // if I want only the samples of 1 mic at 800Hz: i+= 4*20 (=80)
-    for (uint16_t i = 0; i < num_samples; i += 80)
+    // checks if the Finite State Machine is in the correct state
+    if (get_FSM_state() == FREQUENCY_DETECTION)
     {
-        // construct an array of complex numbers. Put 0 to the imaginary part
-        micLeft_cmplx_input[nb_samples] = (float)data[i + MIC_LEFT];
+        /*
+         *
+         *	We get 160 samples per mic every 10ms
+         *	So we fill the samples buffers to reach
+         *	1024 samples, then we compute the FFTs.
+         *
+         */
 
-        nb_samples++;
+        static uint16_t nb_samples = 0;
 
-        micLeft_cmplx_input[nb_samples] = 0;
+        // loop to fill the input buffers with the sample for the real part and 0 for the imaginary part
+        // data contains the sample of all 4 mics: [mic1, mic2, mic3, mic4, mic1, mic2...]
+        // if I want only the samples of 1 mic at 16kHz: i+= 4*1
+        // if I want only the samples of 1 mic at 800Hz: i+= 4*20 (=80)
+        for (uint16_t i = 0; i < num_samples; i += 80)
+        {
+            // construct an array of complex numbers. Put 0 to the imaginary part
+            micLeft_cmplx_input[nb_samples] = (float)data[i + MIC_LEFT];
 
-        nb_samples++;
+            nb_samples++;
 
-        // stop when buffer is full
+            micLeft_cmplx_input[nb_samples] = 0;
+
+            nb_samples++;
+
+            // stop when buffer is full
+            if (nb_samples >= (2 * FFT_SIZE))
+            {
+                break;
+            }
+        }
+
         if (nb_samples >= (2 * FFT_SIZE))
         {
-            break;
+            /*	FFT proccessing
+             *
+             *	This FFT function stores the results in the input buffer given.
+             *	This is an "In Place" function.
+             */
+            doFFT_optimized(FFT_SIZE, micLeft_cmplx_input);
+
+            /*	Magnitude processing
+             *
+             *	Computes the magnitude of the complex numbers and
+             *	stores them in a buffer of FFT_SIZE because it only contains
+             *	real numbers.
+             */
+            arm_cmplx_mag_f32(micLeft_cmplx_input, micLeft_output, FFT_SIZE);
+
+            frequency = find_highest_peak(micLeft_output) * FREQUENCY_PRECISION;
+
+            guitar_string = find_guitar_note();
+
+            if (guitar_string != NO_STRING)
+            {
+                // semaphore or change state
+            }
+
+            chprintf((BaseSequentialStream *)&SD3, "frequency = %f\n", frequency);
+            // chprintf((BaseSequentialStream *)&SD3, "highest peak = %d\n", find_highest_peak(micLeft_output));
+            nb_samples = 0;
         }
-    }
-
-    if (nb_samples >= (2 * FFT_SIZE))
-    {
-        /*	FFT proccessing
-         *
-         *	This FFT function stores the results in the input buffer given.
-         *	This is an "In Place" function.
-         */
-        doFFT_optimized(FFT_SIZE, micLeft_cmplx_input);
-
-        /*	Magnitude processing
-         *
-         *	Computes the magnitude of the complex numbers and
-         *	stores them in a buffer of FFT_SIZE because it only contains
-         *	real numbers.
-         */
-        arm_cmplx_mag_f32(micLeft_cmplx_input, micLeft_output, FFT_SIZE);
-
-        frequency = find_highest_peak(micLeft_output) * FREQUENCY_PRECISION;
-
-        guitar_string = find_guitar_note();
-
-        if (guitar_string != NO_STRING)
-        {
-            // semaphore or change state
-        }
-
-        chprintf((BaseSequentialStream *)&SD3, "frequency = %f\n", frequency);
-        nb_samples = 0;
     }
 }
 
