@@ -134,10 +134,9 @@ static THD_FUNCTION(PerpendicularCalibration, arg)
             else
             {
                 set_body_led(1);
-                set_FSM_state(FREQUENCY_DETECTION);
                 chThdSleepMilliseconds(1000);
-                // set_body_led(0);
-                // chThdSleepMilliseconds(1000);
+                set_body_led(0);
+                chThdSleepMilliseconds(1000);
             }
         }
         else

@@ -188,7 +188,8 @@ void processAudioData(int16_t *data, uint16_t num_samples)
 
             if (guitar_string != NO_STRING)
             {
-                // semaphore or change state
+                // change state of the FSM to the next step
+                set_FSM_state(PERPENDICULAR_CALIBRATION);
             }
 
             chprintf((BaseSequentialStream *)&SD3, "frequency = %f\n", frequency);

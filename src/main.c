@@ -22,7 +22,7 @@
 
 #define STACK_CHK_GUARD 0xe2dee396
 uintptr_t __stack_chk_guard = STACK_CHK_GUARD;
-static FSM_STATE state = PERPENDICULAR_CALIBRATION;
+static FSM_STATE state;
 
 static void serial_start(void)
 {
@@ -76,6 +76,8 @@ int main(void)
 
     perpendicular_calibration_start();
 
+    // set the state of the FSM to the first state
+    set_FSM_state(0);
     while (1)
     {
 #ifdef DEBUG
@@ -85,7 +87,7 @@ int main(void)
         arm_copy_f32(get_audio_buffer_ptr(LEFT_OUTPUT), send_tab, FFT_SIZE);
         SendFloatToComputer((BaseSequentialStream *)&SD3, send_tab, FFT_SIZE);
 #endif /* DEBUG */
-        chThdSleepMilliseconds(200);
+        // chThdSleepMilliseconds(200);
     }
 }
 
