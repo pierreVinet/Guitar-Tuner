@@ -22,10 +22,19 @@ extern "C"
 typedef enum
 {
     FREQUENCY_DETECTION = 0,
-    PERPENDICULAR_CALIBRATION
+    PERPENDICULAR_CALIBRATION,
+    STRING_POSITION,
+    LINE_TRACKING
 } FSM_STATE;
+
+#define SPEED_MOTORS 300
+// in mm
+#define DISTANCE_STRING 100
+// in mm
+#define TOF_PRECISION 5
 
 FSM_STATE get_FSM_state(void);
 void set_FSM_state(FSM_STATE new_state);
+void increment_FSM_state(void);
 
-#endif
+#endif /* MAIN_H */

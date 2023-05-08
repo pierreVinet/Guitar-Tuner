@@ -13,6 +13,9 @@ CSRC += ./main.c \
 		./perpendicular_calibration.c \
 		./audio_processing.c \
 		./communications.c \
+		./motors_commands.c \
+		./line_tracking.c \
+		./process_image.c \
 		
 
 #Header folders to include

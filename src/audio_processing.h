@@ -20,7 +20,7 @@ typedef enum
 
 typedef enum
 {
-    FIRST_STRING = 0,
+    FIRST_STRING = 1,
     SECOND_STRING,
     THIRD_STRING,
     FOURTH_STRING,

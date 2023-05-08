@@ -2,6 +2,9 @@
 #include "perpendicular_calibration.h"
 #include "audio_processing.h"
 #include "communications.h"
+#include "motors_commands.h"
+#include "process_image.h"
+#include "line_tracking.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,13 +19,14 @@
 #include <arm_math.h>
 #include <sensors/VL53L0X/VL53L0X.h>
 #include <leds.h>
+#include <camera/po8030.h>
 
 // uncomment to send values to the computer
 // #define DEBUG
 
 #define STACK_CHK_GUARD 0xe2dee396
 uintptr_t __stack_chk_guard = STACK_CHK_GUARD;
-static FSM_STATE state;
+static FSM_STATE state = 0;
 
 static void serial_start(void)
 {
@@ -46,18 +50,24 @@ void set_FSM_state(FSM_STATE new_state)
     state = new_state;
 }
 
+void increment_FSM_state(void)
+{
+    state++;
+}
+
 int main(void)
 {
     halInit();
     chSysInit();
     mpu_init();
-    clear_leds();
-    set_body_led(0);
-    set_front_led(0);
+    // clear_leds();
 
     serial_start();
     // starts the USB communication
     usb_start();
+    // starts the camera
+    dcmi_start();
+    po8030_start();
     // inits the motors
     motors_init();
 
@@ -74,10 +84,20 @@ int main(void)
     // inits time of flight
     VL53L0X_start();
 
+    // init color detection mode: see process_image.h for values
+    // the color detection can be controled from plotImage Python code
+    select_color_detection(RED_COLOR);
+
+    // starts the thread for the perpendicular calibrations
     perpendicular_calibration_start();
 
-    // set the state of the FSM to the first state
-    set_FSM_state(0);
+    // disable motors by default. Can be enable from plotImage Python code
+    set_enabled_motors(true);
+
+    // stars the threads for the pi regulator and the processing of the image
+    pi_regulator_start();
+    process_image_start();
+
     while (1)
     {
 #ifdef DEBUG
@@ -87,7 +107,16 @@ int main(void)
         arm_copy_f32(get_audio_buffer_ptr(LEFT_OUTPUT), send_tab, FFT_SIZE);
         SendFloatToComputer((BaseSequentialStream *)&SD3, send_tab, FFT_SIZE);
 #endif /* DEBUG */
-        // chThdSleepMilliseconds(200);
+        switch (state)
+        {
+        case STRING_POSITION:
+            stop_when_string_found();
+            break;
+
+        default:
+            break;
+        }
+        chThdSleepMilliseconds(200);
     }
 }
 
