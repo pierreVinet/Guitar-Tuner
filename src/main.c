@@ -1,7 +1,6 @@
 #include "main.h"
 #include "audio_processing.h"
 #include "communications.h"
-#include "motors_commands.h"
 #include "process_image.h"
 #include "line_tracking.h"
 
@@ -26,10 +25,6 @@
 #define STACK_CHK_GUARD 0xe2dee396
 uintptr_t __stack_chk_guard = STACK_CHK_GUARD;
 static FSM_STATE state = 0;
-// tableau avec les frequences exactes de chaque corde de la guitare (en ordre: de la première corde à la sixième)
-static float string_frequency[] = {FIRST_STRING_FREQ, SECOND_STRING_FREQ, THIRD_STRING_FREQ, FOURTH_STRING_FREQ, FIFTH_STRING_FREQ, SIXTH_STRING_FREQ};
-static uint16_t string_coeff[] = {43, 37, 29, 22, 17, 13};
-
 static void serial_start(void)
 {
     static SerialConfig ser_cfg = {
@@ -57,26 +52,12 @@ void increment_FSM_state(void)
     state++;
 }
 
-void handle_string_position(void)
-{
-    uint16_t distance_string = get_guitar_string() * DISTANCE_STRING;
-    advance_until_distance_reached(distance_string, (uint8_t)TOF_PRECISION);
-}
-
-void handle_frequency_position(void)
-{
-    GUITAR_STRING string_number = get_guitar_string();
-    float frequency_measured = get_frequency();
-    float distance_frequency = 300.00 + (string_frequency[string_number - 1] - frequency_measured) * string_coeff[string_number - 1];
-    advance_until_distance_reached(distance_frequency, (uint8_t)TOF_PRECISION);
-}
-
 int main(void)
 {
     halInit();
     chSysInit();
     mpu_init();
-    // clear_leds();
+    clear_leds();
 
     serial_start();
     // starts the USB communication
@@ -103,9 +84,6 @@ int main(void)
     // init color detection mode: see process_image.h for values
     select_color_detection(BLUE_COLOR);
 
-    // disable motors by default. Can be enable from plotImage Python code
-    set_enabled_motors(true);
-
     // stars the threads for the pi regulator and the processing of the image
     pi_regulator_start();
     process_image_start();
@@ -122,11 +100,10 @@ int main(void)
         switch (state)
         {
         case STRING_POSITION:
-            handle_string_position();
+            // set_body_led(1);
             break;
         case FREQUENCY_POSITION:
-            select_color_detection(RED_COLOR);
-            handle_frequency_position();
+            // set_front_led(1);
             break;
         default:
             break;

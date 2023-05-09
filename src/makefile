@@ -12,7 +12,6 @@ GLOBAL_PATH = ../e-puck2_main-processor
 CSRC += ./main.c \
 		./audio_processing.c \
 		./communications.c \
-		./motors_commands.c \
 		./line_tracking.c \
 		./process_image.c \
 		
