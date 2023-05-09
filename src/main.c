@@ -27,7 +27,8 @@
 uintptr_t __stack_chk_guard = STACK_CHK_GUARD;
 static FSM_STATE state = 0;
 // tableau avec les frequences exactes de chaque corde de la guitare (en ordre: de la première corde à la sixième)
-static float string_frequency[6] = {329.63, 246.94, 196.00, 146.83, 110.00, 82.41};
+static float string_frequency[] = {FIRST_STRING_FREQ, SECOND_STRING_FREQ, THIRD_STRING_FREQ, FOURTH_STRING_FREQ, FIFTH_STRING_FREQ, SIXTH_STRING_FREQ};
+static uint16_t string_coeff[] = {43, 37, 29, 22, 17, 13};
 
 static void serial_start(void)
 {
@@ -54,6 +55,20 @@ void set_FSM_state(FSM_STATE new_state)
 void increment_FSM_state(void)
 {
     state++;
+}
+
+void handle_string_position(void)
+{
+    uint16_t distance_string = get_guitar_string() * DISTANCE_STRING;
+    advance_until_distance_reached(distance_string, (uint8_t)TOF_PRECISION);
+}
+
+void handle_frequency_position(void)
+{
+    GUITAR_STRING string_number = get_guitar_string();
+    float frequency_measured = get_frequency();
+    float distance_frequency = 300.00 + (string_frequency[string_number - 1] - frequency_measured) * string_coeff[string_number - 1];
+    advance_until_distance_reached(distance_frequency, (uint8_t)TOF_PRECISION);
 }
 
 int main(void)
@@ -86,7 +101,7 @@ int main(void)
     VL53L0X_start();
 
     // init color detection mode: see process_image.h for values
-    select_color_detection(RED_COLOR);
+    select_color_detection(BLUE_COLOR);
 
     // disable motors by default. Can be enable from plotImage Python code
     set_enabled_motors(true);
@@ -107,11 +122,11 @@ int main(void)
         switch (state)
         {
         case STRING_POSITION:
-            uint16_t distance_string = get_guitar_string() * DISTANCE_STRING;
-            advance_until_distance_reached(distance_string, (uint8_t)TOF_PRECISION);
+            handle_string_position();
             break;
-        case FREQUENCY_DETECTION:
-            advance_until_distance_reached(distance_string, (uint8_t)TOF_PRECISION);
+        case FREQUENCY_POSITION:
+            select_color_detection(RED_COLOR);
+            handle_frequency_position();
             break;
         default:
             break;
