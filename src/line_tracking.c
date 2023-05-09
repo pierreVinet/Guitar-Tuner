@@ -66,7 +66,8 @@ static THD_FUNCTION(PiRegulator, arg)
     {
 
         time = chVTGetSystemTime();
-        if (get_FSM_state() == LINE_TRACKING)
+        FSM_STATE current_state = get_FSM_state();
+        if (current_state == STRING_POSITION || current_state == FREQUENCY_POSITION)
         {
 
             // search for a line (0) not found, (1) found

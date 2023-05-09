@@ -22,9 +22,8 @@ extern "C"
 typedef enum
 {
     FREQUENCY_DETECTION = 0,
-    PERPENDICULAR_CALIBRATION,
     STRING_POSITION,
-    LINE_TRACKING
+    FREQUENCY_POSITION
 } FSM_STATE;
 
 #define SPEED_MOTORS 300
@@ -32,6 +31,8 @@ typedef enum
 #define DISTANCE_STRING 100
 // in mm
 #define TOF_PRECISION 5
+// in mm
+#define DISTANCE_FREQUENCY
 
 FSM_STATE get_FSM_state(void);
 void set_FSM_state(FSM_STATE new_state);

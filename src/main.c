@@ -1,5 +1,4 @@
 #include "main.h"
-#include "perpendicular_calibration.h"
 #include "audio_processing.h"
 #include "communications.h"
 #include "motors_commands.h"
@@ -27,6 +26,8 @@
 #define STACK_CHK_GUARD 0xe2dee396
 uintptr_t __stack_chk_guard = STACK_CHK_GUARD;
 static FSM_STATE state = 0;
+// tableau avec les frequences exactes de chaque corde de la guitare (en ordre: de la première corde à la sixième)
+static float string_frequency[6] = {329.63, 246.94, 196.00, 146.83, 110.00, 82.41};
 
 static void serial_start(void)
 {
@@ -85,11 +86,7 @@ int main(void)
     VL53L0X_start();
 
     // init color detection mode: see process_image.h for values
-    // the color detection can be controled from plotImage Python code
     select_color_detection(RED_COLOR);
-
-    // starts the thread for the perpendicular calibrations
-    perpendicular_calibration_start();
 
     // disable motors by default. Can be enable from plotImage Python code
     set_enabled_motors(true);
@@ -110,9 +107,12 @@ int main(void)
         switch (state)
         {
         case STRING_POSITION:
-            stop_when_string_found();
+            uint16_t distance_string = get_guitar_string() * DISTANCE_STRING;
+            advance_until_distance_reached(distance_string, (uint8_t)TOF_PRECISION);
             break;
-
+        case FREQUENCY_DETECTION:
+            advance_until_distance_reached(distance_string, (uint8_t)TOF_PRECISION);
+            break;
         default:
             break;
         }

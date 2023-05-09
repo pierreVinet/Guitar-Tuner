@@ -151,7 +151,8 @@ static THD_FUNCTION(CaptureImage, arg)
 
     while (1)
     {
-        if (get_FSM_state() == LINE_TRACKING)
+        FSM_STATE current_state = get_FSM_state();
+        if (current_state == STRING_POSITION || current_state == FREQUENCY_POSITION)
         {
             // starts a capture
             dcmi_capture_start();
