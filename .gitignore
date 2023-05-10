@@ -17,8 +17,8 @@ build/
 # Windows specific files but always use if another user can work under Windows
 Thumbs.db
 
-# .vscode/
-# .vscode
+.vscode/
+.vscode
 
 Scripts_python/
 Scripts_python
