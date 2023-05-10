@@ -102,11 +102,11 @@ int main(void)
         case STRING_POSITION:
             // set_body_led(1);
             break;
+        case ROTATION:
+            robot_rotate(90, 0);
+            break;
         case FREQUENCY_POSITION:
             // set_front_led(1);
-            break;
-        case ROTATION:
-            robot_rotate(90,0);
             break;
         default:
             break;
