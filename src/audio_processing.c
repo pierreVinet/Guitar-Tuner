@@ -164,11 +164,11 @@ void processAudioData(int16_t *data, uint16_t num_samples)
             if (guitar_string != NO_STRING)
             {
                 // change state of the FSM to the next step
+                chprintf((BaseSequentialStream *)&SD3, "Frequency found = %f\n", frequency);
                 chprintf((BaseSequentialStream *)&SD3, "string found = %d\n", guitar_string);
                 increment_FSM_state();
             }
 
-            chprintf((BaseSequentialStream *)&SD3, "frequency = %f\n", frequency);
             // chprintf((BaseSequentialStream *)&SD3, "highest peak = %d\n", find_highest_peak(micLeft_output));
             nb_samples = 0;
         }

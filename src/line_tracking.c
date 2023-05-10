@@ -14,7 +14,7 @@
 
 // tableau avec les frequences exactes de chaque corde de la guitare (en ordre: de la première corde à la sixième)
 static float string_frequency[] = {FIRST_STRING_FREQ, SECOND_STRING_FREQ, THIRD_STRING_FREQ, FOURTH_STRING_FREQ, FIFTH_STRING_FREQ, SIXTH_STRING_FREQ};
-static uint16_t string_coeff[] = {43, 37, 29, 22, 17, 13};
+static uint16_t string_coeff[] = {13, 17, 22, 29, 37, 43};
 static uint16_t string_distance[] = {16, 99, 175, 245, 315, 385};
 
 int8_t sign(int16_t number)
@@ -97,7 +97,8 @@ static THD_FUNCTION(PiRegulator, arg)
             if (abs(distance_diff) <= TOF_PRECISION)
             {
                 distance_reached = true;
-
+                chprintf((BaseSequentialStream *)&SD3, "String position finished = %u\n", string_distance[get_guitar_string() - 1]);
+                chThdSleepMilliseconds(500);
                 select_color_detection(RED_COLOR);
                 increment_FSM_state();
             }
@@ -112,6 +113,7 @@ static THD_FUNCTION(PiRegulator, arg)
             distance_diff = VL53L0X_get_dist_mm() - distance_frequency;
             if (abs(distance_diff) <= TOF_PRECISION)
             {
+                chprintf((BaseSequentialStream *)&SD3, "Frequency position finished = %d\n", distance_frequency);
                 distance_reached = true;
                 increment_FSM_state();
             }
