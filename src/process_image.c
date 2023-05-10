@@ -31,6 +31,13 @@ static color_detection_t detect_color = RED_COLOR;
 // initial value: TRUE (the semaphore is taken = red light)
 static BSEMAPHORE_DECL(image_ready_sem, TRUE);
 
+void SendUint8ToComputer(uint8_t *data, uint16_t size)
+{
+    chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t *)"START", 5);
+    chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t *)&size, sizeof(uint16_t));
+    chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t *)data, size);
+}
+
 /*
  *  Returns true (1) if a line is detected or false (0) if no line wider MIN_LINE_WIDTH is detected
  *  If a line is detected, the static variable line_position is updated
@@ -258,7 +265,7 @@ static THD_FUNCTION(ProcessImage, arg)
         if (send_to_computer)
         {
             // sends to the computer the image
-            // SendUint8ToComputer(image, IMAGE_BUFFER_SIZE);
+            SendUint8ToComputer(image, IMAGE_BUFFER_SIZE);
         }
         // invert the bool
         send_to_computer = !send_to_computer;
