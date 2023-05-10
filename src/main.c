@@ -105,6 +105,9 @@ int main(void)
         case FREQUENCY_POSITION:
             // set_front_led(1);
             break;
+        case ROTATION:
+            robot_rotate(90,0);
+            break;
         default:
             break;
         }
