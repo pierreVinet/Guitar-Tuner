@@ -184,8 +184,8 @@ void pi_regulator_start(void)
 
 void robot_rotate(float pas, bool clockwise)
 {
-    // float rotation_cm = (WHEELS_DISTANCE_CM / 2.0) * (2.0 * PI * pas / 360.0);
-    // int32_t steps_to_rotate = (int32_t)round(rotation_cm * NSTEP_ONE_TURN / WHEEL_PERIMETER);
+    float rotation_cm = (WHEELS_DISTANCE_CM / 2.0) * (2.0 * PI * pas / 360.0);
+    int32_t steps_to_rotate = (int32_t)round(rotation_cm * NSTEP_ONE_TURN / WHEEL_PERIMETER);
 
     // int32_t time_to_rotate_us = (int32_t)round((float)steps_to_rotate / SPEED_STEPS_PER_SECOND * TIME_CONVERSION_FACTOR);
     static u_int32_t step_counter = 0;
@@ -194,13 +194,13 @@ void robot_rotate(float pas, bool clockwise)
 
         if (clockwise)
         {
-            left_motor_set_speed(SPEED_STEPS_PER_SECOND);
-            right_motor_set_speed(-SPEED_STEPS_PER_SECOND);
+            left_motor_set_speed(SPEED_MOTORS);
+            right_motor_set_speed(-SPEED_MOTORS);
         }
         else
         {
-            left_motor_set_speed(-SPEED_STEPS_PER_SECOND);
-            right_motor_set_speed(SPEED_STEPS_PER_SECOND);
+            left_motor_set_speed(-SPEED_MOTORS);
+            right_motor_set_speed(SPEED_MOTORS);
         }
         chThdSleepMilliseconds(10);
         step_counter++;
