@@ -265,7 +265,7 @@ static THD_FUNCTION(ProcessImage, arg)
         if (send_to_computer)
         {
             // sends to the computer the image
-            SendUint8ToComputer(image, IMAGE_BUFFER_SIZE);
+            // SendUint8ToComputer(image, IMAGE_BUFFER_SIZE);
         }
         // invert the bool
         send_to_computer = !send_to_computer;
@@ -300,4 +300,9 @@ void select_color_detection(color_detection_t choice_detect_color)
     // Set off the RGB LED
     // set_rgb_led(USED_RGB_LED, 0, 0, 0);
     detect_color = choice_detect_color;
+}
+
+color_detection_t get_color_detection(void)
+{
+    return detect_color;
 }

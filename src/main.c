@@ -106,6 +106,7 @@ int main(void)
             robot_rotate(90, 0);
             break;
         case FREQUENCY_POSITION:
+            // chprintf((BaseSequentialStream *)&SD3, "color detected = %d\n", get_color_detection());
             // set_front_led(1);
             break;
         default:

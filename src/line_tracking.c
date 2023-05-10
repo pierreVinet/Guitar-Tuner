@@ -151,18 +151,20 @@ static THD_FUNCTION(PiRegulator, arg)
             // motors enabled but no line found -> e-puck rotates until finds a line
             else
             {
-// choose to rotate clockwise
-#if ROTATION_CLOCKWISE
-                right_motor_set_speed(-100);
-                left_motor_set_speed(100);
-#endif
+                // // choose to rotate clockwise
+                // #if ROTATION_CLOCKWISE
+                //                 right_motor_set_speed(-100);
+                //                 left_motor_set_speed(100);
+                // #endif
 
-// choose to rotate anticlockwise
-#if !ROTATION_CLOCKWISE
-                right_motor_set_speed(100);
-                left_motor_set_speed(-100);
+                // // choose to rotate anticlockwise
+                // #if !ROTATION_CLOCKWISE
+                //                 right_motor_set_speed(100);
+                //                 left_motor_set_speed(-100);
 
-#endif
+                // #endif
+                right_motor_set_speed(0);
+                left_motor_set_speed(0);
             }
         }
         else
@@ -182,26 +184,27 @@ void pi_regulator_start(void)
 
 void robot_rotate(float pas, bool clockwise)
 {
-    float rotation_cm = (WHEELS_DISTANCE_CM / 2.0) * (2.0 * PI * pas / 360.0);
-    int32_t steps_to_rotate = (int32_t)round(rotation_cm * NSTEP_ONE_TURN / WHEEL_PERIMETER);
+    // float rotation_cm = (WHEELS_DISTANCE_CM / 2.0) * (2.0 * PI * pas / 360.0);
+    // int32_t steps_to_rotate = (int32_t)round(rotation_cm * NSTEP_ONE_TURN / WHEEL_PERIMETER);
 
-    int32_t time_to_rotate_us = (int32_t)round((float)steps_to_rotate / SPEED_STEPS_PER_SECOND * TIME_CONVERSION_FACTOR);
+    // int32_t time_to_rotate_us = (int32_t)round((float)steps_to_rotate / SPEED_STEPS_PER_SECOND * TIME_CONVERSION_FACTOR);
 
     if (clockwise)
     {
-        left_motor_set_speed(SPEED_STEPS_PER_SECOND);
-        right_motor_set_speed(-SPEED_STEPS_PER_SECOND);
+        left_motor_set_speed(SPEED_MOTORS);
+        right_motor_set_speed(-SPEED_MOTORS);
     }
     else
     {
-        left_motor_set_speed(-SPEED_STEPS_PER_SECOND);
-        right_motor_set_speed(SPEED_STEPS_PER_SECOND);
+        left_motor_set_speed(-SPEED_MOTORS);
+        right_motor_set_speed(SPEED_MOTORS);
     }
 
-    chThdSleepMicroseconds(time_to_rotate_us);
+    chThdSleepMilliseconds(3000);
 
     left_motor_set_speed(0);
     right_motor_set_speed(0);
 
+    chprintf((BaseSequentialStream *)&SD3, "Rotation FINISHED = \n");
     increment_FSM_state();
 }

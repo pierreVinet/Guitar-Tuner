@@ -28,7 +28,7 @@ typedef enum
     DO_NOTHING
 } FSM_STATE;
 
-#define SPEED_MOTORS 300
+#define SPEED_MOTORS 200
 // in mm
 #define DISTANCE_STRING 100
 // in mm

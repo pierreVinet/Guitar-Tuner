@@ -32,5 +32,6 @@ uint8_t get_line_detection(void);
 uint16_t get_line_position(void);
 void process_image_start(void);
 void select_color_detection(color_detection_t choice_detect_color);
+color_detection_t get_color_detection(void);
 
 #endif /* PROCESS_IMAGE_H */
