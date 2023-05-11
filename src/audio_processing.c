@@ -21,7 +21,8 @@
 static BSEMAPHORE_DECL(sendToComputer_sem, TRUE);
 
 static float frequency;
-static GUITAR_STRING guitar_string;
+static GUITAR_STRING previous_guitar_string = NO_STRING;
+static GUITAR_STRING guitar_string = NO_STRING;
 
 // input buffers for each microphones coded in 32bits
 // 2 times FFT_SIZE because these arrays contain complex numbers (real + imaginary)
@@ -65,7 +66,7 @@ uint16_t find_highest_peak(float *data)
     return max_norm_index;
 }
 
-GUITAR_STRING find_guitar_note(void)
+GUITAR_STRING find_guitar_string(void)
 {
     if (frequency > SIXTH_STRING_FREQ_MIN && frequency < SIXTH_STRING_FREQ_MAX)
     {
@@ -158,15 +159,37 @@ void processAudioData(int16_t *data, uint16_t num_samples)
             arm_cmplx_mag_f32(micLeft_cmplx_input, micLeft_output, FFT_SIZE);
 
             frequency = find_highest_peak(micLeft_output) * FREQUENCY_PRECISION;
-
-            guitar_string = find_guitar_note();
+            previous_guitar_string = guitar_string;
+            guitar_string = find_guitar_string();
 
             if (guitar_string != NO_STRING)
             {
-                // change state of the FSM to the next step
-                chprintf((BaseSequentialStream *)&SD3, "Frequency found = %f\n", frequency);
-                chprintf((BaseSequentialStream *)&SD3, "string found = %d\n", guitar_string);
-                increment_FSM_state();
+                switch (get_FSM_previous_state())
+                {
+                case FREQUENCY_DETECTION:
+                    // change state of the FSM to the next step
+                    chprintf((BaseSequentialStream *)&SD3, "Frequency found = %f\n", frequency);
+                    chprintf((BaseSequentialStream *)&SD3, "string found = %d\n", guitar_string);
+                    increment_FSM_state();
+                    break;
+
+                case FREQUENCY_POSITION:
+                    // change state of the FSM to the next step
+                    chprintf((BaseSequentialStream *)&SD3, "New frequency found = %f\n", frequency);
+                    if (previous_guitar_string == guitar_string)
+                    {
+                        set_FSM_state(FREQUENCY_POSITION);
+                    }
+                    else
+                    {
+                        chprintf((BaseSequentialStream *)&SD3, "New string = %d\n", guitar_string);
+                        set_FSM_state(STRING_CENTER);
+                    }
+                    break;
+
+                default:
+                    break;
+                }
             }
 
             // chprintf((BaseSequentialStream *)&SD3, "highest peak = %d\n", find_highest_peak(micLeft_output));

@@ -16,10 +16,11 @@
 // tableau avec les frequences exactes de chaque corde de la guitare (en ordre: de la première corde à la sixième)
 static float string_frequency[] = {FIRST_STRING_FREQ, SECOND_STRING_FREQ, THIRD_STRING_FREQ, FOURTH_STRING_FREQ, FIFTH_STRING_FREQ, SIXTH_STRING_FREQ};
 static uint16_t string_coeff[] = {13, 17, 22, 29, 37, 43};
-static uint16_t string_distance[] = {16, 99, 175, 245, 315, 385};
+static uint16_t string_distance[] = {16, 105, 175, 245, 315, 385};
 
 static uint8_t line_detected = 0;
 static int16_t speed_correction = 0;
+// 1 = clockwise rotation, -1 = anticlockwise rotation
 
 int8_t sign(int16_t number)
 {
@@ -134,6 +135,7 @@ static THD_FUNCTION(PiRegulator, arg)
 
     systime_t time;
     uint32_t counter_rotation = 0;
+    int8_t clockwise_rotation = -1;
     int16_t distance_diff = 0;
     FSM_STATE current_state = 0;
     bool distance_reached = true;
@@ -162,17 +164,34 @@ static THD_FUNCTION(PiRegulator, arg)
         }
         else if (current_state == ROTATION)
         {
+            FSM_STATE previous_state = get_FSM_previous_state();
+            if (previous_state == STRING_POSITION)
+            {
+                clockwise_rotation = -1;
+            }
+            else
+            {
+                clockwise_rotation = 1;
+            }
+
             if (counter_rotation >= 350)
             {
                 right_motor_set_speed(0);
                 left_motor_set_speed(0);
                 counter_rotation = 0;
-                increment_FSM_state();
+                if (previous_state == STRING_POSITION)
+                {
+                    increment_FSM_state();
+                }
+                else
+                {
+                    set_FSM_state(STRING_CENTER);
+                }
             }
             else
             {
-                right_motor_set_speed(100);
-                left_motor_set_speed(-100);
+                right_motor_set_speed(-clockwise_rotation * 100);
+                left_motor_set_speed(clockwise_rotation * 100);
                 counter_rotation++;
             }
         }
@@ -188,7 +207,7 @@ static THD_FUNCTION(PiRegulator, arg)
             {
                 chprintf((BaseSequentialStream *)&SD3, "Frequency position finished = %d\n", distance_frequency);
                 distance_reached = true;
-                increment_FSM_state();
+                set_FSM_state(FREQUENCY_DETECTION);
             }
             line_tracking_while_condition(distance_reached, sign(distance_diff));
         }

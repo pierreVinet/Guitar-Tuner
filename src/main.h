@@ -25,6 +25,7 @@ typedef enum
     STRING_POSITION,
     ROTATION,
     FREQUENCY_POSITION,
+    STRING_CENTER,
     DO_NOTHING
 } FSM_STATE;
 
@@ -62,6 +63,7 @@ typedef enum
 #define FIRST_STRING_FREQ_MAX 350
 
 FSM_STATE get_FSM_state(void);
+FSM_STATE get_FSM_previous_state(void);
 void set_FSM_state(FSM_STATE new_state);
 void increment_FSM_state(void);
 
