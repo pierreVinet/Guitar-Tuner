@@ -16,7 +16,7 @@
 // tableau avec les frequences exactes de chaque corde de la guitare (en ordre: de la première corde à la sixième)
 static float string_frequency[] = {FIRST_STRING_FREQ, SECOND_STRING_FREQ, THIRD_STRING_FREQ, FOURTH_STRING_FREQ, FIFTH_STRING_FREQ, SIXTH_STRING_FREQ};
 static uint16_t string_coeff[] = {13, 17, 22, 29, 37, 43};
-static uint16_t string_distance[] = {16, 105, 175, 245, 315, 385};
+static uint16_t string_distance[] = {50, 105, 175, 245, 315, 385};
 
 static uint8_t line_detected = 0;
 static int16_t speed_correction = 0;
@@ -157,7 +157,6 @@ static THD_FUNCTION(PiRegulator, arg)
                 distance_reached = true;
                 chprintf((BaseSequentialStream *)&SD3, "String position finished = %u\n", string_distance[get_guitar_string() - 1]);
                 chThdSleepMilliseconds(500);
-                select_color_detection(RED_COLOR);
                 increment_FSM_state();
             }
             line_tracking_while_condition(distance_reached, sign(distance_diff));
@@ -181,11 +180,13 @@ static THD_FUNCTION(PiRegulator, arg)
                 counter_rotation = 0;
                 if (previous_state == STRING_POSITION)
                 {
+                    select_color_detection(RED_COLOR);
                     increment_FSM_state();
                 }
                 else
                 {
-                    set_FSM_state(STRING_CENTER);
+                    select_color_detection(BLUE_COLOR);
+                    set_FSM_state(STRING_POSITION);
                 }
             }
             else
@@ -215,7 +216,7 @@ static THD_FUNCTION(PiRegulator, arg)
         {
             distance_reached = false;
             // difference between the goal distance and the measured distance
-            distance_diff = VL53L0X_get_dist_mm() - 300;
+            distance_diff = VL53L0X_get_dist_mm() - 320;
 
             if (abs(distance_diff) <= TOF_PRECISION)
             {
