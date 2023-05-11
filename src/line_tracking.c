@@ -211,6 +211,22 @@ static THD_FUNCTION(PiRegulator, arg)
             }
             line_tracking_while_condition(distance_reached, sign(distance_diff));
         }
+        else if (current_state == STRING_CENTER)
+        {
+            distance_reached = false;
+            // difference between the goal distance and the measured distance
+            distance_diff = VL53L0X_get_dist_mm() - 300;
+
+            if (abs(distance_diff) <= TOF_PRECISION)
+            {
+                chprintf((BaseSequentialStream *)&SD3, "String center /n");
+                distance_reached = true;
+                select_color_detection(BLUE_COLOR);
+                set_FSM_state(ROTATION);
+            }
+            chprintf((BaseSequentialStream *)&SD3, "String center %d/n", distance_diff);
+            line_tracking_while_condition(distance_reached, sign(distance_diff));
+        }
         // 100Hz
         chThdSleepUntilWindowed(time, time + MS2ST(10));
     }
