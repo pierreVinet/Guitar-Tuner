@@ -13,10 +13,12 @@
 // include main to include stdlib.h for the abs() function
 #include "main.h"
 
+#define CENTER_TO_WALL 207
+
 // tableau avec les frequences exactes de chaque corde de la guitare (en ordre: de la première corde à la sixième)
 static float string_frequency[] = {FIRST_STRING_FREQ, SECOND_STRING_FREQ, THIRD_STRING_FREQ, FOURTH_STRING_FREQ, FIFTH_STRING_FREQ, SIXTH_STRING_FREQ};
-static uint16_t string_coeff[] = {13, 17, 22, 29, 37, 43};
-static uint16_t string_distance[] = {50, 105, 175, 245, 315, 385};
+static uint16_t string_coeff[] = {9, 12, 15, 20, 26, 31};
+static uint16_t string_distance[] = {79, 133, 186, 240, 285, 335};
 
 static uint8_t line_detected = 0;
 static int16_t speed_correction = 0;
@@ -173,7 +175,7 @@ static THD_FUNCTION(PiRegulator, arg)
                 clockwise_rotation = 1;
             }
 
-            if (counter_rotation >= 350)
+            if (counter_rotation >= 335)
             {
                 right_motor_set_speed(0);
                 left_motor_set_speed(0);
@@ -201,7 +203,7 @@ static THD_FUNCTION(PiRegulator, arg)
 
             distance_reached = false;
             GUITAR_STRING string_number = get_guitar_string();
-            uint16_t distance_frequency = 300 + (string_frequency[string_number - 1] - get_frequency()) * string_coeff[string_number - 1];
+            uint16_t distance_frequency = CENTER_TO_WALL + (string_frequency[string_number - 1] - get_frequency()) * string_coeff[string_number - 1];
             // difference between the goal distance and the measured distance
             distance_diff = VL53L0X_get_dist_mm() - distance_frequency;
             if (abs(distance_diff) <= TOF_PRECISION)
@@ -216,7 +218,7 @@ static THD_FUNCTION(PiRegulator, arg)
         {
             distance_reached = false;
             // difference between the goal distance and the measured distance
-            distance_diff = VL53L0X_get_dist_mm() - 320;
+            distance_diff = VL53L0X_get_dist_mm() - CENTER_TO_WALL;
 
             if (abs(distance_diff) <= TOF_PRECISION)
             {
