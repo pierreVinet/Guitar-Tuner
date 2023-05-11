@@ -18,6 +18,9 @@ static float string_frequency[] = {FIRST_STRING_FREQ, SECOND_STRING_FREQ, THIRD_
 static uint16_t string_coeff[] = {13, 17, 22, 29, 37, 43};
 static uint16_t string_distance[] = {16, 99, 175, 245, 315, 385};
 
+static uint8_t line_detected = 0;
+static int16_t speed_correction = 0;
+
 int8_t sign(int16_t number)
 {
     if (number > 0)
@@ -65,6 +68,63 @@ int16_t pi_regulator(float distance, float goal)
     return (int16_t)speed;
 }
 
+void line_tracking_while_condition(bool condition, int8_t direction)
+{
+    if (!condition)
+    {
+
+        // search for a line (0) not found, (1) found
+        line_detected = get_line_detection();
+        // computes the speed to give to the motors
+        // distance_cm is modified by the image processing thread
+        // speed = pi_regulator(get_distance_cm(), GOAL_DISTANCE);
+
+        // motors enables and line found -> follow the line
+        if (line_detected)
+        {
+            // computes a correction factor to let the robot rotate to be in front of the line
+            speed_correction = (get_line_position() - (IMAGE_BUFFER_SIZE / 2));
+            // SendUint16ToRealTerm(speed_correction + (IMAGE_BUFFER_SIZE / 2));
+
+            // if the line is nearly in front of the camera, don't rotate
+            if (abs(speed_correction) < ROTATION_THRESHOLD)
+            {
+                speed_correction = 0;
+            }
+
+            // applies the speed from the PI regulator and the correction for the rotation
+            // right_motor_set_speed(speed - ROTATION_COEFF * speed_correction);
+            // left_motor_set_speed(speed + ROTATION_COEFF * speed_correction);
+
+            right_motor_set_speed(direction * SPEED_MOTORS - ROTATION_COEFF * speed_correction);
+            left_motor_set_speed(direction * SPEED_MOTORS + ROTATION_COEFF * speed_correction);
+        }
+        // no line found -> motors are turned off
+        else
+        {
+            // // choose to rotate clockwise
+            // #if ROTATION_CLOCKWISE
+            //                 right_motor_set_speed(-100);
+            //                 left_motor_set_speed(100);
+            // #endif
+
+            // // choose to rotate anticlockwise
+            // #if !ROTATION_CLOCKWISE
+            //                 right_motor_set_speed(100);
+            //                 left_motor_set_speed(-100);
+
+            // #endif
+            right_motor_set_speed(0);
+            left_motor_set_speed(0);
+        }
+    }
+    else
+    {
+        right_motor_set_speed(0);
+        left_motor_set_speed(0);
+    }
+}
+
 static THD_WORKING_AREA(waPiRegulator, 256);
 static THD_FUNCTION(PiRegulator, arg)
 {
@@ -73,21 +133,16 @@ static THD_FUNCTION(PiRegulator, arg)
     (void)arg;
 
     systime_t time;
-    static uint8_t line_detected = 0;
-
+    uint32_t counter_rotation = 0;
+    int16_t distance_diff = 0;
     FSM_STATE current_state = 0;
     bool distance_reached = true;
-    int16_t distance_diff = 0;
-
-    int16_t speed = 0;
-    int16_t speed_correction = 0;
 
     while (1)
     {
 
         time = chVTGetSystemTime();
         current_state = get_FSM_state();
-        distance_reached = true;
         distance_diff = 0;
 
         if (current_state == STRING_POSITION)
@@ -103,8 +158,25 @@ static THD_FUNCTION(PiRegulator, arg)
                 select_color_detection(RED_COLOR);
                 increment_FSM_state();
             }
+            line_tracking_while_condition(distance_reached, sign(distance_diff));
         }
-        if (current_state == FREQUENCY_POSITION)
+        else if (current_state == ROTATION)
+        {
+            if (counter_rotation >= 350)
+            {
+                right_motor_set_speed(0);
+                left_motor_set_speed(0);
+                counter_rotation = 0;
+                increment_FSM_state();
+            }
+            else
+            {
+                right_motor_set_speed(100);
+                left_motor_set_speed(-100);
+                counter_rotation++;
+            }
+        }
+        else if (current_state == FREQUENCY_POSITION)
         {
 
             distance_reached = false;
@@ -118,59 +190,7 @@ static THD_FUNCTION(PiRegulator, arg)
                 distance_reached = true;
                 increment_FSM_state();
             }
-        }
-        if (!distance_reached)
-        {
-
-            // search for a line (0) not found, (1) found
-            line_detected = get_line_detection();
-            // computes the speed to give to the motors
-            // distance_cm is modified by the image processing thread
-            // speed = pi_regulator(get_distance_cm(), GOAL_DISTANCE);
-
-            // motors enables and line found -> follow the line
-            if (line_detected)
-            {
-                // computes a correction factor to let the robot rotate to be in front of the line
-                speed_correction = (get_line_position() - (IMAGE_BUFFER_SIZE / 2));
-                // SendUint16ToRealTerm(speed_correction + (IMAGE_BUFFER_SIZE / 2));
-
-                // if the line is nearly in front of the camera, don't rotate
-                if (abs(speed_correction) < ROTATION_THRESHOLD)
-                {
-                    speed_correction = 0;
-                }
-
-                // applies the speed from the PI regulator and the correction for the rotation
-                // right_motor_set_speed(speed - ROTATION_COEFF * speed_correction);
-                // left_motor_set_speed(speed + ROTATION_COEFF * speed_correction);
-
-                right_motor_set_speed(sign(distance_diff) * (SPEED_MOTORS - ROTATION_COEFF * speed_correction));
-                left_motor_set_speed(sign(distance_diff) * (SPEED_MOTORS + ROTATION_COEFF * speed_correction));
-            }
-            // motors enabled but no line found -> e-puck rotates until finds a line
-            else
-            {
-                // // choose to rotate clockwise
-                // #if ROTATION_CLOCKWISE
-                //                 right_motor_set_speed(-100);
-                //                 left_motor_set_speed(100);
-                // #endif
-
-                // // choose to rotate anticlockwise
-                // #if !ROTATION_CLOCKWISE
-                //                 right_motor_set_speed(100);
-                //                 left_motor_set_speed(-100);
-
-                // #endif
-                right_motor_set_speed(0);
-                left_motor_set_speed(0);
-            }
-        }
-        else
-        {
-            right_motor_set_speed(0);
-            left_motor_set_speed(0);
+            line_tracking_while_condition(distance_reached, sign(distance_diff));
         }
         // 100Hz
         chThdSleepUntilWindowed(time, time + MS2ST(10));
@@ -180,37 +200,4 @@ static THD_FUNCTION(PiRegulator, arg)
 void pi_regulator_start(void)
 {
     chThdCreateStatic(waPiRegulator, sizeof(waPiRegulator), NORMALPRIO, PiRegulator, NULL);
-}
-
-void robot_rotate(float pas, bool clockwise)
-{
-    float rotation_cm = (WHEELS_DISTANCE_CM / 2.0) * (2.0 * PI * pas / 360.0);
-    int32_t steps_to_rotate = (int32_t)round(rotation_cm * NSTEP_ONE_TURN / WHEEL_PERIMETER);
-
-    // int32_t time_to_rotate_us = (int32_t)round((float)steps_to_rotate / SPEED_STEPS_PER_SECOND * TIME_CONVERSION_FACTOR);
-    static u_int32_t step_counter = 0;
-    while (step_counter < steps_to_rotate)
-    {
-
-        if (clockwise)
-        {
-            left_motor_set_speed(SPEED_MOTORS);
-            right_motor_set_speed(-SPEED_MOTORS);
-        }
-        else
-        {
-            left_motor_set_speed(-SPEED_MOTORS);
-            right_motor_set_speed(SPEED_MOTORS);
-        }
-        chThdSleepMilliseconds(10);
-        step_counter++;
-    }
-
-    left_motor_set_speed(0);
-    right_motor_set_speed(0);
-    chprintf((BaseSequentialStream *)&SD3, "step counter finished = %d\n", step_counter);
-    step_counter = 0;
-
-    chprintf((BaseSequentialStream *)&SD3, "Rotation FINISHED = \n");
-    increment_FSM_state();
 }

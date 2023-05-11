@@ -101,18 +101,20 @@ int main(void)
         {
         case STRING_POSITION:
             // set_body_led(1);
+            chprintf((BaseSequentialStream *)&SD3, "STRING POSITION \n");
             break;
         case ROTATION:
-            robot_rotate(90, 0);
+            // robot_rotate(90, 0);
+            chprintf((BaseSequentialStream *)&SD3, "ROTATION \n");
             break;
         case FREQUENCY_POSITION:
-            // chprintf((BaseSequentialStream *)&SD3, "color detected = %d\n", get_color_detection());
+            chprintf((BaseSequentialStream *)&SD3, "FREQUENCY POSITION \n");
             // set_front_led(1);
             break;
         default:
             break;
         }
-        chThdSleepMilliseconds(200);
+        chThdSleepMilliseconds(500);
     }
 }
 
