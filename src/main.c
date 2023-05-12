@@ -24,8 +24,10 @@
 
 #define STACK_CHK_GUARD 0xe2dee396
 uintptr_t __stack_chk_guard = STACK_CHK_GUARD;
+
 static FSM_STATE previous_state = 0;
 static FSM_STATE state = 0;
+
 static void serial_start(void)
 {
     static SerialConfig ser_cfg = {
@@ -107,17 +109,17 @@ int main(void)
 #endif /* DEBUG */
         switch (state)
         {
+        case FREQUENCY_POSITION:
+            // set_front_led(1);
+            break;
         case STRING_POSITION:
             // set_body_led(1);
             break;
         case ROTATION:
             // robot_rotate(90, 0);
             break;
-        case FREQUENCY_POSITION:
-            // set_front_led(1);
-            break;
         case STRING_CENTER:
-            
+
             break;
         default:
             break;

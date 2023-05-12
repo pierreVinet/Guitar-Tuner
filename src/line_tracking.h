@@ -18,6 +18,18 @@
 #define SPEED_STEPS_PER_SECOND 600
 #define TIME_CONVERSION_FACTOR 1000000
 
+#define STEPS_FOR_90_ROTATION 15
+#define STEPS_FOR_180_ROTATION 30
+
+typedef enum
+{
+    WALL_0 = 0,
+    WALL_1,
+    WALL_2,
+    WALL_3,
+
+} WALL_FACED;
+
 // start the PI regulator thread
 void pi_regulator_start(void);
 
