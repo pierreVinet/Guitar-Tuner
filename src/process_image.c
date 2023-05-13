@@ -9,9 +9,6 @@
 // fonctions e config et define de la camera (nb de pixels etc...)
 #include <camera/po8030.h>
 
-// RGB LED used for interaction with plotImage Python code
-#include <leds.h>
-
 // dans le main.h il y a l'inclusion de dcmi_camera.h
 #include "main.h"
 #include "process_image.h"
@@ -206,7 +203,6 @@ static THD_FUNCTION(ProcessImage, arg)
         switch (detect_color)
         {
         case RED_COLOR:
-            // toggle_rgb_led(USED_RGB_LED, RED_LED, INTENSITY_RGB_LED);
             // Extracts only the red pixels
             for (uint16_t i = 0; i < (2 * IMAGE_BUFFER_SIZE); i += 2)
             {
@@ -231,7 +227,6 @@ static THD_FUNCTION(ProcessImage, arg)
             }
             break;
         case GREEN_COLOR:
-            toggle_rgb_led(USED_RGB_LED, GREEN_LED, INTENSITY_RGB_LED);
             // Extracts only the green pixels
             for (uint16_t i = 0; i < (2 * IMAGE_BUFFER_SIZE); i += 2)
             {
@@ -240,7 +235,6 @@ static THD_FUNCTION(ProcessImage, arg)
             }
             break;
         case BLUE_COLOR:
-            toggle_rgb_led(USED_RGB_LED, BLUE_LED, INTENSITY_RGB_LED);
             // Extracts only the blue pixels
             for (uint16_t i = 0; i < (2 * IMAGE_BUFFER_SIZE); i += 2)
             {
@@ -297,8 +291,6 @@ void process_image_start(void)
 
 void select_color_detection(color_detection_t choice_detect_color)
 {
-    // Set off the RGB LED
-    // set_rgb_led(USED_RGB_LED, 0, 0, 0);
     detect_color = choice_detect_color;
 }
 

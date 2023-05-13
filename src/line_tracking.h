@@ -7,7 +7,6 @@
 #define KP 800.0f
 #define KI 3.5f // must not be zero
 #define MAX_SUM_ERROR (MOTOR_SPEED_LIMIT / KI)
-#define ROTATION_CLOCKWISE 0 // 1 = rotation clockwise, 0 = rotation anticlockwise
 
 #define NSTEP_ONE_TURN 1000  // number of step for 1 turn of the motor
 #define NSTEP_ONE_EL_TURN 4  // number of steps to do 1 electrical turn
@@ -18,8 +17,8 @@
 #define SPEED_STEPS_PER_SECOND 600
 #define TIME_CONVERSION_FACTOR 1000000
 
-#define STEPS_FOR_90_ROTATION 15
-#define STEPS_FOR_180_ROTATION 30
+#define STEPS_FOR_90_ROTATION 30
+#define STEPS_FOR_180_ROTATION 60
 
 typedef enum
 {

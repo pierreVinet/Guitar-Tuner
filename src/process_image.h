@@ -13,9 +13,6 @@
 // min width of the line detected (in pixel)
 #define MIN_LINE_WIDTH 80
 
-// RGB LED used for interaction with plotImage Python code
-#define USED_RGB_LED LED4
-#define INTENSITY_RGB_LED 10
 #define PXTOCM 1570.0f // experimental value
 #define GOAL_DISTANCE 10.0f
 #define MAX_DISTANCE 25.0f

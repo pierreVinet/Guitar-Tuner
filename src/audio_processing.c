@@ -8,7 +8,6 @@
 
 #include "audio_processing.h"
 #include "main.h"
-#include "communications.h"
 
 // minimum value for intensity to detect frequency
 #define MIN_VALUE_THRESHOLD 1000
@@ -19,6 +18,9 @@
 
 // semaphore
 static BSEMAPHORE_DECL(sendToComputer_sem, TRUE);
+
+// tableau avec les frequences exactes de chaque corde de la guitare (en ordre: de la première corde à la sixième)
+static float string_frequency[] = {FIRST_STRING_FREQ, SECOND_STRING_FREQ, THIRD_STRING_FREQ, FOURTH_STRING_FREQ, FIFTH_STRING_FREQ, SIXTH_STRING_FREQ};
 
 static float frequency;
 static GUITAR_STRING previous_guitar_string = NO_STRING;
@@ -95,6 +97,24 @@ GUITAR_STRING find_guitar_string(void)
     return NO_STRING;
 }
 
+float get_string_frequency(void)
+{
+    return string_frequency[guitar_string - 1];
+}
+
+// returns 1 if the pitch is higher than the string frequency, else returns 0
+bool get_pitch(void)
+{
+    if (frequency - string_frequency[guitar_string - 1] >= 0)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 /*
  *	Callback called when the demodulation of the four microphones is done.
  *	We get 160 samples per mic every 10ms (16kHz)
@@ -168,26 +188,35 @@ void processAudioData(int16_t *data, uint16_t num_samples)
                 {
                 case FREQUENCY_DETECTION:
                     // change state of the FSM to the next step
-                    chprintf((BaseSequentialStream *)&SD3, "Frequency found = %f\n", frequency);
-                    chprintf((BaseSequentialStream *)&SD3, "string found = %d\n", guitar_string);
+                    // chprintf((BaseSequentialStream *)&SD3, "Frequency found = %f\n", frequency);
+                    // chprintf((BaseSequentialStream *)&SD3, "string found = %d\n", guitar_string);
+                    chprintf((BaseSequentialStream *)&SD3, "pitch = %d\n", get_pitch());
+                    // chprintf((BaseSequentialStream *)&SD3, "STRING POSITION \n");
+                    // chThdSleepMilliseconds(200);
                     increment_FSM_state();
                     break;
 
                 case FREQUENCY_POSITION:
                     // change state of the FSM to the next step
-                    chprintf((BaseSequentialStream *)&SD3, "New frequency found = %f\n", frequency);
+                    // chprintf((BaseSequentialStream *)&SD3, "New frequency found = %f\n", frequency);
                     if (previous_guitar_string == guitar_string)
                     {
+                        // chprintf((BaseSequentialStream *)&SD3, "FREQUENCY POSITION \n");
+                        // chThdSleepMilliseconds(100);
                         set_FSM_state(FREQUENCY_POSITION);
                     }
                     else
                     {
-                        chprintf((BaseSequentialStream *)&SD3, "New string = %d\n", guitar_string);
+                        // chprintf((BaseSequentialStream *)&SD3, "New string found = %d\n", guitar_string);
+                        // chprintf((BaseSequentialStream *)&SD3, "STRING CENTER \n");
+                        // chThdSleepMilliseconds(200);
                         set_FSM_state(STRING_CENTER);
                     }
                     break;
-
                 default:
+                    // chprintf((BaseSequentialStream *)&SD3, "DO NOTHING \n");
+                    // chThdSleepMilliseconds(100);
+                    set_FSM_state(DO_NOTHING);
                     break;
                 }
             }
