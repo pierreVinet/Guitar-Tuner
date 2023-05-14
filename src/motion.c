@@ -39,11 +39,11 @@ static WALL_FACED wall_faced = WALL_2;
 struct RGB color_led_distance(int16_t distance_center)
 {
     int16_t distance_center_tpm = distance_center;
-    distance_center_tpm = (abs(distance_center_tpm) > 195) ? 195 : distance_center_tpm;
+    distance_center_tpm = (abs(distance_center_tpm) > 185) ? 185 : distance_center_tpm;
     struct RGB param_rgb;
     param_rgb.b_value = 0;
-    param_rgb.g_value = (uint8_t)(255 - (1.3 * abs(distance_center_tpm)));
-    param_rgb.r_value = (uint8_t)(1.3 * abs(distance_center_tpm));
+    param_rgb.g_value = (uint8_t)(255 - (1.37 * abs(distance_center_tpm)));
+    param_rgb.r_value = (uint8_t)(1.37 * abs(distance_center_tpm));
 
     return param_rgb;
 }
