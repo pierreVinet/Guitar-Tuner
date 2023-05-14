@@ -9,9 +9,8 @@
 // fonctions e config et define de la camera (nb de pixels etc...)
 #include <camera/po8030.h>
 
-// dans le main.h il y a l'inclusion de dcmi_camera.h
 #include "main.h"
-#include "process_image.h"
+#include "image_processing.h"
 
 // static float distance_cm = 0;
 // position of the line (middle, left, right ...)

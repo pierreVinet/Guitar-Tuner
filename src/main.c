@@ -1,6 +1,6 @@
 #include "main.h"
 #include "audio_processing.h"
-#include "process_image.h"
+#include "image_processing.h"
 #include "line_tracking.h"
 
 #include <stdio.h>
@@ -27,7 +27,9 @@ uintptr_t __stack_chk_guard = STACK_CHK_GUARD;
 static FSM_STATE previous_state = 0;
 static FSM_STATE state = 0;
 
-// starts the serial communication
+/*
+ *	Starts the serial communication.
+ */
 static void serial_start(void)
 {
 	static SerialConfig ser_cfg = {
@@ -40,35 +42,45 @@ static void serial_start(void)
 	sdStart(&SD3, &ser_cfg); // UART3.
 }
 
-// return the current state of the FSM (Finite-State Machine)
+/*
+ *	Returns the current state of the FSM (Finite-State Machine).
+ */
 FSM_STATE get_FSM_state(void)
 {
 	return state;
 }
 
-// return the previous state of the FSM
+/*
+ *	Returns the previous state of the FSM.
+ */
 FSM_STATE get_FSM_previous_state(void)
 {
 	return previous_state;
 }
 
-// set the previous state of the FSM with the current
-// and set the current state with the new one
+/*
+ *	Set the previous state of the FSM with the current one,
+ * 	and set the current state with the new one.
+ */
 void set_FSM_state(FSM_STATE new_state)
 {
 	previous_state = state;
 	state = new_state;
 }
 
-// set the previous state of the FSM with the current
-// and increment the current state
+/*
+ *	Set the previous state of the FSM with the current one,
+ * 	and increment the current state.
+ */
 void increment_FSM_state(void)
 {
 	previous_state = state;
 	state++;
 }
 
-// clear all the rgb leads
+/*
+ *	Clear all the rgb leads.
+ */
 void clear_rgb_leds(void)
 {
 	set_rgb_led(LED2, 0, 0, 0);
@@ -103,7 +115,7 @@ int main(void)
 	// starts the microphones processing thread. It calls the callback given in parameter when samples are ready
 	mic_start(&processAudioData);
 	// stars the threads for the pi regulator
-	pi_regulator_start();
+	line_tracking_start();
 	// starts the thread for the processing of the image
 	process_image_start();
 

@@ -9,27 +9,40 @@
 
 #include "audio_processing.h"
 #include "line_tracking.h"
-#include "process_image.h"
-// include main to include stdlib.h for the abs() function
+#include "image_processing.h"
 #include "main.h"
 
-#define CENTER_TO_WALL 225
+#define SPEED_MOTORS 200
+#define TOF_PRECISION 5 // in [mm]
+#define ERROR_THRESHOLD 10
+#define MAX_ERROR 150
+#define KP 0.5f // proportional constant
 
+#define STEPS_FOR_90_ROTATION 30
+#define STEPS_FOR_180_ROTATION 60
 #define ROTATION_180 1
 #define ROTATION_90 0
-
 #define ROTATION_CLOCKWISE 1
-#define ROTATION_ANTICLOCKWISE 0
 
+// distance between the center line and the walls 1 and 3
+#define CENTER_TO_WALL 225
+
+// coefficients to convert the frequency difference into a distance, for each string
 static uint16_t string_coeff[] = {10, 13, 17, 22, 29, 33};
+// distance of each string from the WALL_2
 static uint16_t string_distance[] = {79, 133, 186, 240, 285, 335};
 
 static uint8_t line_detected = 0;
 static int16_t speed_correction = 0;
-
 static WALL_FACED wall_faced = WALL_2;
 
-// simple sign function: 1 if positive, -1 if negative, 0 if 0
+/*
+ *	Simple sign function that returns:   1 if the number is positive
+ *                                      -1 if the number is negative
+ *                                       0 if the number is zero
+ *	params :
+ *	int16_t number		                 Signed number.
+ */
 int8_t sign(int16_t number)
 {
     if (number > 0)
@@ -40,125 +53,125 @@ int8_t sign(int16_t number)
         return 0;
 }
 
-// returns the wall currently faced
+/*
+ *	Returns the wall currently faced by the TOF of the EPuck2.
+ */
 WALL_FACED get_wall_faced(void)
 {
     return wall_faced;
 }
 
+/*
+ *	Set the new wall faced by the TOF of the EPuck2.
+ *
+ *  params:
+ *  WALL_FACED new_wall_faced           New wall faced by the TOF.
+ */
 void set_wall_faced(WALL_FACED new_wall_faced)
 {
     wall_faced = new_wall_faced;
 }
 
-// simple PI regulator implementation
-int16_t pi_regulator(float distance, float goal)
+/*
+ *	Simple P regulator implementation: the speed is proportionnal
+ *  to the error (distance - goal).
+ *
+ *  params:
+ *  uint16_t distance           Current distance measured.
+ *  uint16_t goal               Goal distance.
+ */
+int16_t p_regulator(uint16_t distance, uint16_t goal)
 {
-    float error = 0;
-    float speed = 0;
 
-    static float sum_error = 0;
+    int16_t error = 0;
+    int16_t speed = 0;
 
     error = distance - goal;
 
-    // disables the PI regulator if the error is to small
-    // this avoids to always move as we cannot exactly be where we want and
-    // the camera is a bit noisy
-
-    // fabs() => returns the absolute value of a float number
-    if (fabs(error) < ERROR_THRESHOLD)
+    // disables the P regulator if the error is to small, the camera is a bit noisy
+    if (abs(error) < ERROR_THRESHOLD)
     {
         return 0;
     }
-
-    sum_error += error;
-
-    // we set a maximum and a minimum for the sum to avoid an uncontrolled growth
-    if (sum_error > MAX_SUM_ERROR)
+    // we set a maximum and a minimum error
+    else if (error > MAX_ERROR)
     {
-        sum_error = MAX_SUM_ERROR;
+        error = MAX_ERROR;
     }
-    else if (sum_error < -MAX_SUM_ERROR)
+    else if (error < -MAX_ERROR)
     {
-        sum_error = -MAX_SUM_ERROR;
+        error = -MAX_ERROR;
     }
 
-    speed = KP * error + KI * sum_error;
+    speed = KP * error;
 
-    return (int16_t)speed;
+    return speed;
 }
 
-// tracks a line until condition = false. If direction = 1 it goes forward, if direction = -1 it goeas backwards
-// when condition reached (condition = true) motors are stopped
+/*
+ *  Tracks and follow a line detected by the camera while the parameter "condition" is false.
+ *  When the condition is reached (condition = true) motors are stopped.
+ *
+ *  params:
+ *  bool condition                Condition to stop the EPuck2:  if false the EPuck2 tracks the line.
+ *                                                               if true the EPuck2 stops.
+ *  int8_t direction              Direction of the EPuck2:       1 is forward.
+ *                                                              -1 is backward.
+ */
 void line_tracking_while_condition(bool condition, int8_t direction)
 {
     if (!condition)
     {
-
-        // search for a line (0) not found, (1) found
+        // search for a line
         line_detected = get_line_detection();
-        // computes the speed to give to the motors
-        // distance_cm is modified by the image processing thread
-        // speed = pi_regulator(get_distance_cm(), GOAL_DISTANCE);
 
-        // motors enables and line found -> follow the line
         if (line_detected)
         {
             // computes a correction factor to let the robot rotate to be in front of the line
-            speed_correction = (get_line_position() - (IMAGE_BUFFER_SIZE / 2));
-            // SendUint16ToRealTerm(speed_correction + (IMAGE_BUFFER_SIZE / 2));
+            speed_correction = p_regulator(get_line_position(), (IMAGE_BUFFER_SIZE / 2));
 
-            // if the line is nearly in front of the camera, don't rotate
-            if (abs(speed_correction) < ROTATION_THRESHOLD)
-            {
-                speed_correction = 0;
-            }
-
-            // applies the speed from the PI regulator and the correction for the rotation
-            // right_motor_set_speed(speed - ROTATION_COEFF * speed_correction);
-            // left_motor_set_speed(speed + ROTATION_COEFF * speed_correction);
-
-            right_motor_set_speed(direction * SPEED_MOTORS - ROTATION_COEFF * speed_correction);
-            left_motor_set_speed(direction * SPEED_MOTORS + ROTATION_COEFF * speed_correction);
+            right_motor_set_speed(direction * SPEED_MOTORS - speed_correction);
+            left_motor_set_speed(direction * SPEED_MOTORS + speed_correction);
         }
-        // no line found -> motors are turned off
+        // if no line found, motors are turned off
         else
         {
-            // // choose to rotate clockwise
-            // #if ROTATION_CLOCKWISE
-            //                 right_motor_set_speed(-100);
-            //                 left_motor_set_speed(100);
-            // #endif
-
-            // // choose to rotate anticlockwise
-            // #if !ROTATION_CLOCKWISE
-            //                 right_motor_set_speed(100);
-            //                 left_motor_set_speed(-100);
-
-            // #endif
             right_motor_set_speed(0);
             left_motor_set_speed(0);
         }
     }
-    else
+    else // stop the motors
     {
         right_motor_set_speed(0);
         left_motor_set_speed(0);
     }
 }
 
-// handle the rotation of the robot of 90 or 180, clockwise or anticlockwise depending of the previous state of the FSM
+/*
+ *  Handle the rotation of the robot depending on the previous state of the FSM.
+ *
+ *  params:
+ *  bool angle_degree               Angle of the rotation performed by the EPuck2: true is 180deg
+ *                                                                                 false is 90deg
+ *  bool clockwise                  Rotation direction: true is clocwise
+ *                                                      false is anticlockwise
+ *  FSM_STATE prev_state            Previous state of the FSM.
+ */
 void rotation_robot(bool angle_degree, bool clockwise, FSM_STATE prev_state)
 {
-    static uint32_t steps_done = 0;
+    static uint8_t steps_done = 0;
     if (angle_degree) // rotation 180°
     {
+        right_motor_set_speed(-MOTOR_SPEED_LIMIT);
+        left_motor_set_speed(MOTOR_SPEED_LIMIT);
+        steps_done++;
+
         if (steps_done >= STEPS_FOR_180_ROTATION)
         {
             right_motor_set_speed(0);
             left_motor_set_speed(0);
             steps_done = 0;
-            // little optimisation using modulo: it changes wall faced between 1 and 3
+            // set the new wall faced: WALL_1 if previous was WALL_3, and viceversa
             set_wall_faced((wall_faced + 2) % 4);
 
             switch (prev_state)
@@ -174,16 +187,8 @@ void rotation_robot(bool angle_degree, bool clockwise, FSM_STATE prev_state)
                 set_FSM_state(STRING_CENTER);
                 break;
             default:
-                // chprintf((BaseSequentialStream *)&SD3, "DO NOTHING -r \n");
-                // chThdSleepMilliseconds(100);
                 set_FSM_state(DO_NOTHING);
             }
-        }
-        else
-        {
-            right_motor_set_speed(-MOTOR_SPEED_LIMIT);
-            left_motor_set_speed(MOTOR_SPEED_LIMIT);
-            steps_done++;
         }
     }
     else // rotation 90°
@@ -194,7 +199,6 @@ void rotation_robot(bool angle_degree, bool clockwise, FSM_STATE prev_state)
             left_motor_set_speed(MOTOR_SPEED_LIMIT);
             steps_done++;
         }
-
         else
         {
             right_motor_set_speed(MOTOR_SPEED_LIMIT);
@@ -225,22 +229,26 @@ void rotation_robot(bool angle_degree, bool clockwise, FSM_STATE prev_state)
                 set_FSM_state(STRING_POSITION);
                 break;
             default:
-                // chprintf((BaseSequentialStream *)&SD3, "DO NOTHING -r \n");
-                // chThdSleepMilliseconds(100);
                 set_FSM_state(DO_NOTHING);
             }
         }
     }
 }
 
-static THD_WORKING_AREA(waPiRegulator, 512);
-static THD_FUNCTION(PiRegulator, arg)
+/*
+ *  Thread that tracks and follow a line drawn on the ground,
+ *  until a distance is reached, according to the current
+ *  state of the FSM. The distance is calculated using
+ *  the frequency detected.
+ */
+static THD_WORKING_AREA(waLineTracking, 512);
+static THD_FUNCTION(LineTracking, arg)
 {
 
     chRegSetThreadName(__FUNCTION__);
     (void)arg;
 
-    systime_t time;
+    // difference between the measured distance and the goal distance
     int16_t distance_diff = 0;
     FSM_STATE current_state = 0;
     FSM_STATE previous_state = 0;
@@ -248,26 +256,23 @@ static THD_FUNCTION(PiRegulator, arg)
 
     while (1)
     {
-
-        time = chVTGetSystemTime();
         current_state = get_FSM_state();
         previous_state = get_FSM_previous_state();
         distance_diff = 0;
 
         if (current_state == STRING_POSITION)
         {
-
             distance_reached = false;
-            // difference between the goal distance and the measured distance
+            // difference between the measured distance and the distance of the current string
             distance_diff = VL53L0X_get_dist_mm() - string_distance[get_guitar_string() - 1];
             if (abs(distance_diff) <= TOF_PRECISION)
             {
                 distance_reached = true;
                 // chprintf((BaseSequentialStream *)&SD3, "String position reached \n");
                 chprintf((BaseSequentialStream *)&SD3, "ROTATION -sp \n");
-                // chThdSleepMilliseconds(100);
                 increment_FSM_state();
             }
+            // if the distance is not reached, follow the line
             line_tracking_while_condition(distance_reached, sign(distance_diff));
         }
         else if (current_state == ROTATION)
@@ -275,57 +280,62 @@ static THD_FUNCTION(PiRegulator, arg)
             switch (previous_state)
             {
             case STRING_POSITION:
-                // en fonction de la frequence > au centre ou pas
+                // rotation of 90deg, clocwise or anticlockwise depending on the pitch of the frequency
                 rotation_robot(ROTATION_90, get_pitch(), previous_state);
                 break;
             case FREQUENCY_POSITION:
+                // clocwise rotation of 180deg, the goal distance is behind the robot.
                 rotation_robot(ROTATION_180, ROTATION_CLOCKWISE, previous_state);
                 break;
             case STRING_CENTER:
                 if (distance_reached)
+                    // the robot is at the center. Rotation of 90deg to face the WALL_2
                     rotation_robot(ROTATION_90, wall_faced % 3, previous_state);
                 else
+                    // clocwise rotation of 180deg, the goal distance is behind the robot.
                     rotation_robot(ROTATION_180, ROTATION_CLOCKWISE, previous_state);
                 break;
             default:
+                set_FSM_state(DO_NOTHING);
                 break;
             }
         }
         else if (current_state == FREQUENCY_POSITION)
         {
             distance_reached = false;
-            // distance calculé par rapport au mur 1
+            // distance calculated from the WALL_1, using the frequency and the string detected
             uint16_t distance_frequency = CENTER_TO_WALL + (get_frequency() - get_string_frequency()) * string_coeff[get_guitar_string() - 1];
             chprintf((BaseSequentialStream *)&SD3, "WAll faced = %d\n", wall_faced);
             if (wall_faced == 3)
             {
-                // distance calculé par rapport au mur 3
+                // distance converted. Now the distance is from the WALL_3
                 distance_frequency = CENTER_TO_WALL * 2 - distance_frequency;
             }
             chprintf((BaseSequentialStream *)&SD3, "distance frequency = %u\n", distance_frequency);
             chThdSleepMilliseconds(50);
-            // difference between the goal distance and the measured distance
+            // difference between the measured distance and the distance to the wall
             distance_diff = VL53L0X_get_dist_mm() - distance_frequency;
 
             if (distance_diff >= TOF_PRECISION)
             {
+                // the goal distance is in front of the robot -> follow the line
                 line_tracking_while_condition(distance_reached, 1);
             }
             else if (distance_diff <= -TOF_PRECISION)
             {
-                // right_motor_set_speed(0);
-                // left_motor_set_speed(0);
+                // the goal distance is behind the robot -> 180deg rotation
                 chprintf((BaseSequentialStream *)&SD3, "ROTATION -fp \n");
-                // chThdSleepMilliseconds(100);
                 set_FSM_state(ROTATION);
             }
-            else // the robot is in the good position
+            else // the robot reached his goal
             {
                 distance_reached = true;
+                // stop the robot
                 line_tracking_while_condition(distance_reached, 1);
                 // chprintf((BaseSequentialStream *)&SD3, "Frequency position reached \n");
                 // chprintf((BaseSequentialStream *)&SD3, "FREQUENCY DETECTION -fp \n");
                 // chThdSleepMilliseconds(100);
+                // ready to detect a new frequency
                 set_FSM_state(FREQUENCY_DETECTION);
             }
         }
@@ -333,33 +343,34 @@ static THD_FUNCTION(PiRegulator, arg)
         else if (current_state == STRING_CENTER)
         {
             distance_reached = false;
-            // difference between the goal distance and the measured distance
+            // difference between the measured distance and the center line
             distance_diff = VL53L0X_get_dist_mm() - CENTER_TO_WALL;
 
             if (distance_diff >= TOF_PRECISION)
             {
+                // the goal distance is in front of the robot -> follow the line
                 line_tracking_while_condition(distance_reached, 1);
             }
             else if (distance_diff <= -TOF_PRECISION)
             {
-                // right_motor_set_speed(0);
-                // left_motor_set_speed(0);
                 // chprintf((BaseSequentialStream *)&SD3, "ROTATION -sc \n");
                 // chThdSleepMilliseconds(100);
+                // the goal distance is behind the robot -> 180deg rotation
                 set_FSM_state(ROTATION);
             }
-            else
+            else // the robot reached his goal
             {
                 distance_reached = true;
+                // stop the robot
                 line_tracking_while_condition(distance_reached, 1);
                 // chprintf((BaseSequentialStream *)&SD3, "String center reached /n");
                 // chprintf((BaseSequentialStream *)&SD3, "ROTATION -sc \n");
                 // chThdSleepMilliseconds(100);
+                // 90deg rotation to face de WALL_2
                 set_FSM_state(ROTATION);
             }
         }
         // 100Hz
-        // chThdSleepUntilWindowed(time, time + MS2ST(10));
         chThdSleepMilliseconds(10);
     }
 }
@@ -405,8 +416,11 @@ static THD_FUNCTION(PiRegulator, arg)
 //     }
 // }
 
-void pi_regulator_start(void)
+/*
+ *  Start the LineTracking thread.
+ */
+void line_tracking_start(void)
 {
-    chThdCreateStatic(waPiRegulator, sizeof(waPiRegulator), NORMALPRIO, PiRegulator, NULL);
+    chThdCreateStatic(waLineTracking, sizeof(waLineTracking), NORMALPRIO, LineTracking, NULL);
     // chThdCreateStatic(waRotation, sizeof(waRotation), NORMALPRIO, Rotation, NULL);
 }
