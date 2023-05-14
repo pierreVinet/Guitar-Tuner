@@ -8,7 +8,7 @@
 #include <sensors/VL53L0X/VL53L0X.h>
 
 #include "audio_processing.h"
-#include "line_tracking.h"
+#include "motion.h"
 #include "image_processing.h"
 #include "main.h"
 
@@ -278,40 +278,6 @@ static THD_FUNCTION(LineTracking, arg)
             // if the distance is not reached, follow the line
             line_tracking_while_condition(distance_reached, sign(distance_diff));
         }
-        // else if (current_state == ROTATION)
-        // {
-        //     switch (previous_state)
-        //     {
-        //     case STRING_POSITION:
-        //         set_all_rgb_leds(255, 255, 0);
-        //         // rotation of 90deg, clocwise or anticlockwise depending on the pitch of the frequency
-        //         rotation_robot(ROTATION_90, get_pitch(), previous_state);
-        //         break;
-        //     case FREQUENCY_POSITION:
-        //         set_all_rgb_leds(255, 255, 0);
-        //         // clocwise rotation of 180deg, the goal distance is behind the robot.
-        //         rotation_robot(ROTATION_180, ROTATION_CLOCKWISE, previous_state);
-        //         break;
-        //     case STRING_CENTER:
-        //         if (distance_reached)
-        //         {
-        //             set_all_rgb_leds(0, 255, 0);
-        //             // the robot is at the center. Rotation of 90deg to face the WALL_2
-        //             rotation_robot(ROTATION_90, wall_faced % 3, previous_state);
-        //         }
-        //         else
-        //         {
-        //             set_all_rgb_leds(0, 255, 0);
-        //             // clocwise rotation of 180deg, the goal distance is behind the robot.
-        //             rotation_robot(ROTATION_180, ROTATION_CLOCKWISE, previous_state);
-        //         }
-        //         break;
-        //     default:
-        //         clear_rgb_leds();
-        //         set_FSM_state(DO_NOTHING);
-        //         break;
-        //     }
-        // }
         else if (current_state == FREQUENCY_POSITION)
         {
             set_all_rgb_leds(255, 255, 0);
@@ -400,11 +366,13 @@ static THD_FUNCTION(Rotation, arg)
     chRegSetThreadName(__FUNCTION__);
     (void)arg;
 
+    systime_t time;
     FSM_STATE current_state = 0;
     FSM_STATE previous_state = 0;
 
     while (1)
     {
+        time = chVTGetSystemTime();
         current_state = get_FSM_state();
         previous_state = get_FSM_previous_state();
 
@@ -443,14 +411,14 @@ static THD_FUNCTION(Rotation, arg)
             }
         }
         // 100Hz
-        chThdSleepMilliseconds(10);
+        chThdSleepUntilWindowed(time, time + MS2ST(10));
     }
 }
 
 /*
- *  Start the LineTracking thread.
+ *  Start the LineTracking and Rotation thread.
  */
-void line_tracking_start(void)
+void motion_start(void)
 {
     chThdCreateStatic(waLineTracking, sizeof(waLineTracking), NORMALPRIO, LineTracking, NULL);
     chThdCreateStatic(waRotation, sizeof(waRotation), NORMALPRIO, Rotation, NULL);

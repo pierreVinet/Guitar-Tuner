@@ -11,6 +11,6 @@ typedef enum
 
 } WALL_FACED;
 
-void line_tracking_start(void);
+void motion_start(void);
 
 #endif /* LINE_TRACKING_H */

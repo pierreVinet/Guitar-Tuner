@@ -1,7 +1,7 @@
 #include "main.h"
 #include "audio_processing.h"
 #include "image_processing.h"
-#include "line_tracking.h"
+#include "motion.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -131,7 +131,7 @@ int main(void)
 	// starts the microphones processing thread. It calls the callback given in parameter when samples are ready
 	mic_start(&processAudioData);
 	// stars the threads for the pi regulator
-	line_tracking_start();
+	motion_start();
 	// starts the thread for the processing of the image
 	image_processing_start();
 
