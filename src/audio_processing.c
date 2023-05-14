@@ -183,6 +183,7 @@ void processAudioData(int16_t *data, uint16_t num_samples)
     // checks if the Finite State Machine is in the correct state
     if (get_FSM_state() == FREQUENCY_DETECTION)
     {
+        set_all_rgb_leds(0, 0, 255);
         static uint16_t nb_samples = 0;
 
         /*
