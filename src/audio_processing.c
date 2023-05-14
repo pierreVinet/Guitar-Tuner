@@ -97,35 +97,35 @@ uint16_t find_highest_peak(float *data)
 }
 
 /*
- *	Search the string affiliated with the frequency detected.
+ *	Search and return the string affiliated with the frequency detected.
  */
-void find_guitar_string(void)
+GUITAR_STRING find_guitar_string(void)
 {
     if (frequency > SIXTH_STRING_FREQ_MIN && frequency < SIXTH_STRING_FREQ_MAX)
     {
-        guitar_string = SIXTH_STRING;
+        return SIXTH_STRING;
     }
     else if (frequency > FIFTH_STRING_FREQ_MIN && frequency < FIFTH_STRING_FREQ_MAX)
     {
-        guitar_string = FIFTH_STRING;
+        return FIFTH_STRING;
     }
     else if (frequency > FOURTH_STRING_FREQ_MIN && frequency < FOURTH_STRING_FREQ_MAX)
     {
-        guitar_string = FOURTH_STRING;
+        return FOURTH_STRING;
     }
     else if (frequency > THIRD_STRING_FREQ_MIN && frequency < THIRD_STRING_FREQ_MAX)
     {
-        guitar_string = THIRD_STRING;
+        return THIRD_STRING;
     }
     else if (frequency > SECOND_STRING_FREQ_MIN && frequency < SECOND_STRING_FREQ_MAX)
     {
-        guitar_string = SECOND_STRING;
+        return SECOND_STRING;
     }
     else if (frequency > FIRST_STRING_FREQ_MIN && frequency < FIRST_STRING_FREQ_MAX)
     {
-        guitar_string = FIRST_STRING;
+        return FIRST_STRING;
     }
-    guitar_string = NO_STRING;
+    return NO_STRING;
 }
 
 /*
@@ -212,7 +212,7 @@ void processAudioData(int16_t *data, uint16_t num_samples)
 
             frequency = find_highest_peak(micLeft_output) * FREQUENCY_PRECISION;
             previous_guitar_string = guitar_string;
-            find_guitar_string();
+            guitar_string = find_guitar_string();
 
             if (guitar_string != NO_STRING)
             {

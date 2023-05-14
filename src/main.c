@@ -121,6 +121,7 @@ int main(void)
 
 	while (1)
 	{
+		chThdSleepSeconds(1);
 	}
 }
 
