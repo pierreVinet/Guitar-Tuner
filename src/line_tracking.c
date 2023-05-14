@@ -26,7 +26,7 @@
 
 // distance between the center line and the walls 1 and 3
 #define CENTER_TO_WALL 225
-
+// structure to communicate values to the RGB LEDs
 // coefficients to convert the frequency difference into a distance, for each string
 static uint16_t string_coeff[] = {10, 13, 17, 22, 29, 33};
 // distance of each string from the WALL_2
@@ -106,6 +106,18 @@ int16_t p_regulator(uint16_t distance, uint16_t goal)
     speed = KP * error;
 
     return speed;
+}
+
+struct RGB color_led_distance(int16_t distance_center)
+{
+    int16_t distance_center_tpm = distance_center;
+    distance_center_tpm = (abs(distance_center_tpm) > 195) ? 195 : distance_center_tpm;
+    struct RGB param_rgb;
+    param_rgb.b_value = 0;
+    param_rgb.g_value = (uint8_t)(255 - (1.3 * abs(distance_center_tpm)));
+    param_rgb.r_value = (uint8_t)(1.3 * abs(distance_center_tpm));
+
+    return param_rgb;
 }
 
 /*
@@ -326,6 +338,7 @@ static THD_FUNCTION(LineTracking, arg)
                 // distance converted. Now the distance is from the WALL_3
                 distance_frequency = CENTER_TO_WALL * 2 - distance_frequency;
             }
+
             chprintf((BaseSequentialStream *)&SD3, "distance frequency = %u\n", distance_frequency);
             chThdSleepMilliseconds(50);
             // difference between the measured distance and the distance to the wall
@@ -355,6 +368,8 @@ static THD_FUNCTION(LineTracking, arg)
                 clear_rgb_leds();
                 set_FSM_state(FREQUENCY_DETECTION);
             }
+
+            set_all_rgb_leds(color_led_distance(255 - distance_frequency).r_value, color_led_distance(255 - distance_frequency).g_value, 0);
         }
 
         else if (current_state == STRING_CENTER)

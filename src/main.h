@@ -30,6 +30,13 @@ typedef enum
     DO_NOTHING
 } FSM_STATE;
 
+struct RGB
+{
+    uint8_t r_value;
+    uint8_t g_value;
+    uint8_t b_value;
+};
+
 FSM_STATE get_FSM_state(void);
 FSM_STATE get_FSM_previous_state(void);
 void set_FSM_state(FSM_STATE new_state);
