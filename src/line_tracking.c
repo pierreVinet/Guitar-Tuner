@@ -191,17 +191,14 @@ void rotation_robot(bool angle_degree, bool clockwise, FSM_STATE prev_state)
             case FREQUENCY_POSITION:
                 // chprintf((BaseSequentialStream *)&SD3, "FREQUENCY POSITION -r \n");
                 // chThdSleepMilliseconds(100);
-                clear_rgb_leds();
                 increment_FSM_state();
                 break;
             case STRING_CENTER:
                 // chprintf((BaseSequentialStream *)&SD3, "STRING CENTER -r \n");
                 // chThdSleepMilliseconds(100);
-                clear_rgb_leds();
                 set_FSM_state(STRING_CENTER);
                 break;
             default:
-                clear_rgb_leds();
                 set_FSM_state(DO_NOTHING);
             }
         }
@@ -285,7 +282,6 @@ static THD_FUNCTION(LineTracking, arg)
                 distance_reached = true;
                 // chprintf((BaseSequentialStream *)&SD3, "String position reached \n");
                 chprintf((BaseSequentialStream *)&SD3, "ROTATION -sp \n");
-                clear_rgb_leds();
                 increment_FSM_state();
             }
             // if the distance is not reached, follow the line
@@ -352,7 +348,6 @@ static THD_FUNCTION(LineTracking, arg)
             {
                 // the goal distance is behind the robot -> 180deg rotation
                 chprintf((BaseSequentialStream *)&SD3, "ROTATION -fp \n");
-                clear_rgb_leds();
                 set_FSM_state(ROTATION);
             }
             else // the robot reached his goal
@@ -364,7 +359,6 @@ static THD_FUNCTION(LineTracking, arg)
                 // chprintf((BaseSequentialStream *)&SD3, "FREQUENCY DETECTION -fp \n");
                 // chThdSleepMilliseconds(100);
                 // ready to detect a new frequency
-                clear_rgb_leds();
                 set_FSM_state(FREQUENCY_DETECTION);
             }
         }
@@ -386,7 +380,6 @@ static THD_FUNCTION(LineTracking, arg)
                 // chprintf((BaseSequentialStream *)&SD3, "ROTATION -sc \n");
                 // chThdSleepMilliseconds(100);
                 // the goal distance is behind the robot -> 180deg rotation
-                clear_rgb_leds();
                 set_FSM_state(ROTATION);
             }
             else // the robot reached his goal
@@ -398,7 +391,6 @@ static THD_FUNCTION(LineTracking, arg)
                 // chprintf((BaseSequentialStream *)&SD3, "ROTATION -sc \n");
                 // chThdSleepMilliseconds(100);
                 // 90deg rotation to face de WALL_2
-                clear_rgb_leds();
                 set_FSM_state(ROTATION);
             }
         }
