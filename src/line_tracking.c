@@ -333,7 +333,7 @@ static THD_FUNCTION(LineTracking, arg)
                 distance_frequency = CENTER_TO_WALL * 2 - distance_frequency;
             }
 
-            set_all_rgb_leds(color_led_distance(255 - distance_frequency).r_value, color_led_distance(255 - distance_frequency).g_value, 0);
+            set_all_rgb_leds(color_led_distance(255 - VL53L0X_get_dist_mm()).r_value, color_led_distance(255 - VL53L0X_get_dist_mm()).g_value, 0);
             chprintf((BaseSequentialStream *)&SD3, "distance frequency = %u\n", distance_frequency);
             chThdSleepMilliseconds(50);
             // difference between the measured distance and the distance to the wall
