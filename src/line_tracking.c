@@ -32,7 +32,7 @@ static uint16_t string_coeff[] = {10, 13, 17, 22, 29, 33};
 // distance of each string from the WALL_2
 static uint16_t string_distance[] = {79, 133, 186, 240, 285, 335};
 
-static uint8_t line_detected = 0;
+static bool line_detected = 0;
 static int16_t speed_correction = 0;
 static WALL_FACED wall_faced = WALL_2;
 

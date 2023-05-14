@@ -117,7 +117,7 @@ int main(void)
 	// stars the threads for the pi regulator
 	line_tracking_start();
 	// starts the thread for the processing of the image
-	process_image_start();
+	image_processing_start();
 
 	while (1)
 	{
