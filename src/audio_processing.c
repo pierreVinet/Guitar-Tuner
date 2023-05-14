@@ -9,6 +9,7 @@
 #include "audio_processing.h"
 #include "main.h"
 
+
 #define FFT_SIZE 1024
 
 // minimum value of intensity to detect a frequency

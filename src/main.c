@@ -22,9 +22,13 @@
 
 #define STACK_CHK_GUARD 0xe2dee396
 uintptr_t __stack_chk_guard = STACK_CHK_GUARD;
+// number of rgb leds
+#define NUM_LEDS 4
 
 static FSM_STATE previous_state = 0;
 static FSM_STATE state = 0;
+// to iterate on to access the different RGB LEDS
+static const uint8_t LEDS[NUM_LEDS] = {LED2, LED4, LED6, LED8};
 
 /*
  *	Starts the serial communication.
@@ -87,21 +91,15 @@ void increment_FSM_state(void)
  */
 void set_all_rgb_leds(uint8_t red_val, uint8_t green_val, uint8_t blue_val)
 {
-	set_rgb_led(LED2, red_val, green_val, blue_val);
-	set_rgb_led(LED4, red_val, green_val, blue_val);
-	set_rgb_led(LED6, red_val, green_val, blue_val);
-	set_rgb_led(LED8, red_val, green_val, blue_val);
+	for (int i = 0; i < NUM_LEDS; i++)
+	{
+		set_rgb_led(LEDS[i], red_val, green_val, blue_val);
+	}
 }
-
-/*
- *	Clear all the rgb leads.
- */
+// clears all rgb leds
 void clear_rgb_leds(void)
 {
-	set_rgb_led(LED2, 0, 0, 0);
-	set_rgb_led(LED4, 0, 0, 0);
-	set_rgb_led(LED6, 0, 0, 0);
-	set_rgb_led(LED8, 0, 0, 0);
+	set_all_rgb_leds(0, 0, 0);
 }
 
 int main(void)
