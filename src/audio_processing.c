@@ -12,7 +12,7 @@
 #define FFT_SIZE 1024
 
 // minimum value of intensity to detect a frequency
-#define MIN_INTENSITY_THRESHOLD 1000
+#define MIN_INTENSITY_THRESHOLD 5000
 // we don't analyze before this index to not use resources for nothing
 #define MIN_INDEX 100
 // we don't analyze after this index to not use resources for nothing

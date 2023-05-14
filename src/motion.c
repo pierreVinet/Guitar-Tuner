@@ -11,7 +11,7 @@
 #include "image_processing.h"
 #include "main.h"
 
-#define SPEED_MOTORS 200
+#define SPEED_MOTORS 400
 #define TOF_PRECISION 5 // in [mm]
 #define ERROR_THRESHOLD 10
 #define MAX_ERROR 150
@@ -183,7 +183,7 @@ static THD_FUNCTION(LineTracking, arg)
 
         if (current_state == STRING_POSITION)
         {
-            set_all_rgb_leds(0, 255, 255);
+            set_all_rgb_leds(255, 0, 255);
             distance_reached = false;
             // difference between the measured distance and the distance of the current string
             distance_diff = VL53L0X_get_dist_mm() - string_distance[get_guitar_string() - 1];
@@ -210,12 +210,12 @@ static THD_FUNCTION(LineTracking, arg)
             // difference between the measured distance and the distance to the wall
             distance_diff = VL53L0X_get_dist_mm() - distance_frequency;
 
-            if (distance_diff >= TOF_PRECISION)
+            if (distance_diff >= 2 * TOF_PRECISION)
             {
                 // the goal distance is in front of the robot -> follow the line
                 line_tracking_while_condition(distance_reached, 1);
             }
-            else if (distance_diff <= -TOF_PRECISION)
+            else if (distance_diff <= -2 * TOF_PRECISION)
             {
                 // the goal distance is behind the robot -> 180deg rotation
                 set_FSM_state(ROTATION);
@@ -230,10 +230,9 @@ static THD_FUNCTION(LineTracking, arg)
                 set_FSM_state(FREQUENCY_DETECTION);
             }
         }
-
         else if (current_state == STRING_CENTER)
         {
-            set_all_rgb_leds(0, 255, 255);
+            set_all_rgb_leds(255, 0, 255);
             distance_reached = false;
             // difference between the measured distance and the center line
             distance_diff = VL53L0X_get_dist_mm() - CENTER_TO_WALL;
@@ -292,9 +291,11 @@ void rotation_robot(bool angle_degree, bool clockwise, FSM_STATE prev_state)
             switch (prev_state)
             {
             case FREQUENCY_POSITION:
+                chThdSleepMilliseconds(150);
                 increment_FSM_state();
                 break;
             case STRING_CENTER:
+                chThdSleepMilliseconds(150);
                 set_FSM_state(STRING_CENTER);
                 break;
             default:
@@ -329,13 +330,14 @@ void rotation_robot(bool angle_degree, bool clockwise, FSM_STATE prev_state)
             case STRING_POSITION:
                 select_color_detection(RED_COLOR);
                 clockwise ? set_wall_faced(WALL_3) : set_wall_faced(WALL_1);
-                // chThdSleepMilliseconds(100);
+                chThdSleepMilliseconds(150);
                 clear_rgb_leds();
                 increment_FSM_state();
                 break;
             case STRING_CENTER:
                 select_color_detection(BLUE_COLOR);
                 set_wall_faced(WALL_2);
+                chThdSleepMilliseconds(150);
                 set_FSM_state(STRING_POSITION);
                 break;
             default:
