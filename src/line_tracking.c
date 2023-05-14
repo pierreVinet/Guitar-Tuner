@@ -328,7 +328,6 @@ static THD_FUNCTION(LineTracking, arg)
         }
         else if (current_state == FREQUENCY_POSITION)
         {
-            set_all_rgb_leds(255, 255, 0);
             distance_reached = false;
             // distance calculated from the WALL_1, using the frequency and the string detected
             uint16_t distance_frequency = CENTER_TO_WALL + (get_frequency() - get_string_frequency()) * string_coeff[get_guitar_string() - 1];
@@ -339,6 +338,7 @@ static THD_FUNCTION(LineTracking, arg)
                 distance_frequency = CENTER_TO_WALL * 2 - distance_frequency;
             }
 
+            set_all_rgb_leds(color_led_distance(255 - distance_frequency).r_value, color_led_distance(255 - distance_frequency).g_value, 0);
             chprintf((BaseSequentialStream *)&SD3, "distance frequency = %u\n", distance_frequency);
             chThdSleepMilliseconds(50);
             // difference between the measured distance and the distance to the wall
@@ -368,8 +368,6 @@ static THD_FUNCTION(LineTracking, arg)
                 clear_rgb_leds();
                 set_FSM_state(FREQUENCY_DETECTION);
             }
-
-            set_all_rgb_leds(color_led_distance(255 - distance_frequency).r_value, color_led_distance(255 - distance_frequency).g_value, 0);
         }
 
         else if (current_state == STRING_CENTER)
