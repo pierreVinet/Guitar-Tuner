@@ -25,6 +25,8 @@
 
 // distance between the center line and the walls 1 and 3
 #define CENTER_TO_WALL 229
+// constants to handle the LEDS
+#define MAX_LED_INTENSITY 255
 
 // coefficients to convert the frequency difference into a distance, for each string
 static uint16_t string_coeff[] = {7, 12, 15, 19, 25, 30};
@@ -36,13 +38,20 @@ static bool distance_reached = false;
 static int16_t speed_correction = 0;
 static WALL_FACED wall_faced = WALL_2;
 
+struct RGB
+{
+    uint8_t r_value;
+    uint8_t g_value;
+    uint8_t b_value;
+};
+
 struct RGB color_led_distance(int16_t distance_center)
 {
     int16_t distance_center_tpm = distance_center;
     distance_center_tpm = (abs(distance_center_tpm) > 185) ? 185 : distance_center_tpm;
     struct RGB param_rgb;
     param_rgb.b_value = 0;
-    param_rgb.g_value = (uint8_t)(255 - (1.37 * abs(distance_center_tpm)));
+    param_rgb.g_value = (uint8_t)(MAX_LED_INTENSITY - (1.37 * abs(distance_center_tpm)));
     param_rgb.r_value = (uint8_t)(1.37 * abs(distance_center_tpm));
 
     return param_rgb;
@@ -92,6 +101,12 @@ void set_wall_faced(WALL_FACED new_wall_faced)
  *  uint16_t distance           Current distance measured.
  *  uint16_t goal               Goal distance.
  */
+
+void stop_motors(void)
+{
+    right_motor_set_speed(0);
+    left_motor_set_speed(0);
+}
 int16_t p_regulator(uint16_t distance, uint16_t goal)
 {
 
@@ -148,14 +163,12 @@ void line_tracking_while_condition(bool condition, int8_t direction)
         // if no line found, motors are turned off
         else
         {
-            right_motor_set_speed(0);
-            left_motor_set_speed(0);
+            stop_motors();
         }
     }
     else // stop the motors
     {
-        right_motor_set_speed(0);
-        left_motor_set_speed(0);
+        stop_motors();
     }
 }
 
@@ -183,7 +196,7 @@ static THD_FUNCTION(LineTracking, arg)
 
         if (current_state == STRING_POSITION)
         {
-            set_all_rgb_leds(255, 0, 255);
+            set_all_rgb_leds(MAX_LED_INTENSITY, 0, MAX_LED_INTENSITY);
             distance_reached = false;
             // difference between the measured distance and the distance of the current string
             distance_diff = VL53L0X_get_dist_mm() - string_distance[get_guitar_string() - 1];
@@ -206,7 +219,7 @@ static THD_FUNCTION(LineTracking, arg)
                 // distance converted. Now the distance is from the WALL_3
                 distance_frequency = CENTER_TO_WALL * 2 - distance_frequency;
             }
-            set_all_rgb_leds(color_led_distance(255 - VL53L0X_get_dist_mm()).r_value, color_led_distance(255 - VL53L0X_get_dist_mm()).g_value, 0);
+            set_all_rgb_leds(color_led_distance(MAX_LED_INTENSITY - VL53L0X_get_dist_mm()).r_value, color_led_distance(MAX_LED_INTENSITY - VL53L0X_get_dist_mm()).g_value, 0);
             // difference between the measured distance and the distance to the wall
             distance_diff = VL53L0X_get_dist_mm() - distance_frequency;
 
@@ -232,7 +245,7 @@ static THD_FUNCTION(LineTracking, arg)
         }
         else if (current_state == STRING_CENTER)
         {
-            set_all_rgb_leds(255, 0, 255);
+            set_all_rgb_leds(MAX_LED_INTENSITY, 0, MAX_LED_INTENSITY);
             distance_reached = false;
             // difference between the measured distance and the center line
             distance_diff = VL53L0X_get_dist_mm() - CENTER_TO_WALL;
@@ -282,8 +295,7 @@ void rotation_robot(bool angle_degree, bool clockwise, FSM_STATE prev_state)
 
         if (steps_done >= STEPS_FOR_180_ROTATION)
         {
-            right_motor_set_speed(0);
-            left_motor_set_speed(0);
+            stop_motors();
             steps_done = 0;
             // set the new wall faced: WALL_1 if previous was WALL_3, and viceversa
             set_wall_faced((wall_faced + 2) % 4);
@@ -321,8 +333,7 @@ void rotation_robot(bool angle_degree, bool clockwise, FSM_STATE prev_state)
 
         if (steps_done >= STEPS_FOR_90_ROTATION)
         {
-            right_motor_set_speed(0);
-            left_motor_set_speed(0);
+            stop_motors();
             steps_done = 0;
 
             switch (prev_state)
@@ -370,25 +381,25 @@ static THD_FUNCTION(Rotation, arg)
             switch (previous_state)
             {
             case STRING_POSITION:
-                set_all_rgb_leds(255, 255, 0);
+                set_all_rgb_leds(MAX_LED_INTENSITY, MAX_LED_INTENSITY, 0);
                 // rotation of 90deg, clocwise or anticlockwise depending on the pitch of the frequency
                 rotation_robot(ROTATION_90, get_pitch(), previous_state);
                 break;
             case FREQUENCY_POSITION:
-                set_all_rgb_leds(255, 255, 0);
+                set_all_rgb_leds(MAX_LED_INTENSITY, MAX_LED_INTENSITY, 0);
                 // clocwise rotation of 180deg, the goal distance is behind the robot.
                 rotation_robot(ROTATION_180, ROTATION_CLOCKWISE, previous_state);
                 break;
             case STRING_CENTER:
                 if (distance_reached)
                 {
-                    set_all_rgb_leds(0, 255, 0);
+                    set_all_rgb_leds(0, MAX_LED_INTENSITY, 0);
                     // the robot is at the center. Rotation of 90deg to face the WALL_2
                     rotation_robot(ROTATION_90, wall_faced % 3, previous_state);
                 }
                 else
                 {
-                    set_all_rgb_leds(0, 255, 0);
+                    set_all_rgb_leds(0, MAX_LED_INTENSITY, 0);
                     // clocwise rotation of 180deg, the goal distance is behind the robot.
                     rotation_robot(ROTATION_180, ROTATION_CLOCKWISE, previous_state);
                 }
