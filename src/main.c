@@ -21,15 +21,13 @@
 // These funtcions are handled by the ESP32 and the communication with the uC is done via SPI
 #include <spi_comm.h>
 
-// uncomment to send values to the computer
-// #define DEBUG
-
 #define STACK_CHK_GUARD 0xe2dee396
 uintptr_t __stack_chk_guard = STACK_CHK_GUARD;
 
 static FSM_STATE previous_state = 0;
 static FSM_STATE state = 0;
 
+// starts the serial communication
 static void serial_start(void)
 {
 	static SerialConfig ser_cfg = {
@@ -42,28 +40,35 @@ static void serial_start(void)
 	sdStart(&SD3, &ser_cfg); // UART3.
 }
 
+// return the current state of the FSM (Finite-State Machine)
 FSM_STATE get_FSM_state(void)
 {
 	return state;
 }
 
+// return the previous state of the FSM
 FSM_STATE get_FSM_previous_state(void)
 {
 	return previous_state;
 }
 
+// set the previous state of the FSM with the current
+// and set the current state with the new one
 void set_FSM_state(FSM_STATE new_state)
 {
 	previous_state = state;
 	state = new_state;
 }
 
+// set the previous state of the FSM with the current
+// and increment the current state
 void increment_FSM_state(void)
 {
 	previous_state = state;
 	state++;
 }
 
+// clear all the rgb leads
 void clear_rgb_leds(void)
 {
 	set_rgb_led(LED2, 0, 0, 0);
@@ -77,6 +82,7 @@ int main(void)
 	halInit();
 	chSysInit();
 	mpu_init();
+	// clear all leds
 	clear_leds();
 	clear_rgb_leds();
 
@@ -86,49 +92,23 @@ int main(void)
 	// starts the camera
 	dcmi_start();
 	po8030_start();
+	// init color detection mode of the camera
+	select_color_detection(BLUE_COLOR);
 	// inits the motors
 	motors_init();
-
 	// starts RGB LEDS and User button managment
 	spi_comm_start();
-	// starts the microphones processing thread.
-	// it calls the callback given in parameter when samples are ready
-	// It initializes the interfaces used to sample the microphones and the thread used to demodulate the signals
-	mic_start(&processAudioData);
 	// inits time of flight
 	VL53L0X_start();
-
-	// init color detection mode: see process_image.h for values
-	select_color_detection(BLUE_COLOR);
-
-	// stars the threads for the pi regulator and the processing of the image
+	// starts the microphones processing thread. It calls the callback given in parameter when samples are ready
+	mic_start(&processAudioData);
+	// stars the threads for the pi regulator
 	pi_regulator_start();
+	// starts the thread for the processing of the image
 	process_image_start();
-
-	set_rgb_led(LED2, 0, 0, 255);
-	set_rgb_led(LED4, 0, 255, 0);
-	set_rgb_led(LED6, 255, 0, 0);
-	set_rgb_led(LED8, 255, 255, 0);
 
 	while (1)
 	{
-		switch (state)
-		{
-		case FREQUENCY_DETECTION:
-			break;
-		case STRING_POSITION:
-			break;
-		case FREQUENCY_POSITION:
-			break;
-		case ROTATION:
-			break;
-		case STRING_CENTER:
-			break;
-		default:
-			// set_body_led(1);
-			break;
-		}
-		chThdSleepMilliseconds(200);
 	}
 }
 

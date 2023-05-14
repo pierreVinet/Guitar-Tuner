@@ -19,6 +19,7 @@ extern "C"
 }
 #endif
 
+// Different states of the FSM
 typedef enum
 {
     FREQUENCY_DETECTION = 0,
@@ -29,15 +30,7 @@ typedef enum
     DO_NOTHING
 } FSM_STATE;
 
-#define SPEED_MOTORS 200
-// in mm
-#define DISTANCE_STRING 100
-// in mm
-#define TOF_PRECISION 5
-// in mm
-#define DISTANCE_FREQUENCY
-
-// frequency for each string of the guitar
+// frequency for each string of the guitar and their respective range
 #define SIXTH_STRING_FREQ_MIN 76
 #define SIXTH_STRING_FREQ 82.41f
 #define SIXTH_STRING_FREQ_MAX 88

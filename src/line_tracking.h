@@ -1,6 +1,11 @@
 #ifndef LINE_TRACKING_H
 #define LINE_TRACKING_H
 
+// speed of the motors when
+#define SPEED_MOTORS 200
+// in mm
+#define TOF_PRECISION 5
+
 #define ROTATION_THRESHOLD 10
 #define ROTATION_COEFF 1
 #define ERROR_THRESHOLD 0.1f //[cm] because of the noise of the camera
