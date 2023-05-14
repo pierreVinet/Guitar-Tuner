@@ -1,6 +1,5 @@
 #include <ch.h>
 #include <hal.h>
-#include <chprintf.h>
 #include <usbcfg.h>
 #include <camera/po8030.h>
 

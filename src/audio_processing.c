@@ -1,7 +1,6 @@
 #include <ch.h>
 #include <hal.h>
 #include <usbcfg.h>
-#include <chprintf.h>
 #include <audio/microphone.h>
 #include <arm_math.h>
 #include <arm_const_structs.h>
@@ -221,30 +220,18 @@ void processAudioData(int16_t *data, uint16_t num_samples)
                 switch (get_FSM_previous_state())
                 {
                 case FREQUENCY_DETECTION:
-                    // chprintf((BaseSequentialStream *)&SD3, "Frequency found = %f\n", frequency);
-                    // chprintf((BaseSequentialStream *)&SD3, "string found = %d\n", guitar_string);
-                    chprintf((BaseSequentialStream *)&SD3, "pitch = %d\n", get_pitch());
-                    // chprintf((BaseSequentialStream *)&SD3, "STRING POSITION \n");
-                    // chThdSleepMilliseconds(200);
                     clear_rgb_leds();
                     increment_FSM_state();
                     break;
 
                 case FREQUENCY_POSITION:
-                    // change state of the FSM to the next step
-                    // chprintf((BaseSequentialStream *)&SD3, "New frequency found = %f\n", frequency);
                     if (previous_guitar_string == guitar_string)
                     {
-                        // chprintf((BaseSequentialStream *)&SD3, "FREQUENCY POSITION \n");
-                        // chThdSleepMilliseconds(100);
                         clear_rgb_leds();
                         set_FSM_state(FREQUENCY_POSITION);
                     }
                     else
                     {
-                        // chprintf((BaseSequentialStream *)&SD3, "New string found = %d\n", guitar_string);
-                        // chprintf((BaseSequentialStream *)&SD3, "STRING CENTER \n");
-                        // chThdSleepMilliseconds(200);
                         clear_rgb_leds();
                         set_FSM_state(STRING_CENTER);
                     }
