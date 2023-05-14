@@ -1,5 +1,5 @@
-#ifndef LINE_TRACKING_H
-#define LINE_TRACKING_H
+#ifndef MOTION_H
+#define MOTION_H
 
 // wall faced by the TOF of the EPuck2
 typedef enum
@@ -13,4 +13,4 @@ typedef enum
 
 void motion_start(void);
 
-#endif /* LINE_TRACKING_H */
+#endif /* MOTION_H */
