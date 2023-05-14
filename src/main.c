@@ -79,6 +79,22 @@ void increment_FSM_state(void)
 }
 
 /*
+ *	Set all the rgb leads.
+ *
+ * 	params:
+ * 	uint8_t red_val			Red value: from 0 to 255.
+ *  uint8_t green_val		Green value: from 0 to 255.
+ *  uint8_t blue_val		Blue value: from 0 to 255.
+ */
+void set_all_rgb_leds(uint8_t red_val, uint8_t green_val, uint8_t blue_val)
+{
+	set_rgb_led(LED2, red_val, green_val, blue_val);
+	set_rgb_led(LED4, red_val, green_val, blue_val);
+	set_rgb_led(LED6, red_val, green_val, blue_val);
+	set_rgb_led(LED8, red_val, green_val, blue_val);
+}
+
+/*
  *	Clear all the rgb leads.
  */
 void clear_rgb_leds(void)

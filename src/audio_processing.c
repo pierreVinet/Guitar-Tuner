@@ -5,6 +5,7 @@
 #include <audio/microphone.h>
 #include <arm_math.h>
 #include <arm_const_structs.h>
+#include <leds.h>
 
 #include "audio_processing.h"
 #include "main.h"
@@ -182,6 +183,7 @@ void processAudioData(int16_t *data, uint16_t num_samples)
     // checks if the Finite State Machine is in the correct state
     if (get_FSM_state() == FREQUENCY_DETECTION)
     {
+        set_all_rgb_leds(0, 0, 255);
         static uint16_t nb_samples = 0;
 
         /*
@@ -224,6 +226,7 @@ void processAudioData(int16_t *data, uint16_t num_samples)
                     chprintf((BaseSequentialStream *)&SD3, "pitch = %d\n", get_pitch());
                     // chprintf((BaseSequentialStream *)&SD3, "STRING POSITION \n");
                     // chThdSleepMilliseconds(200);
+                    clear_rgb_leds();
                     increment_FSM_state();
                     break;
 
@@ -234,6 +237,7 @@ void processAudioData(int16_t *data, uint16_t num_samples)
                     {
                         // chprintf((BaseSequentialStream *)&SD3, "FREQUENCY POSITION \n");
                         // chThdSleepMilliseconds(100);
+                        clear_rgb_leds();
                         set_FSM_state(FREQUENCY_POSITION);
                     }
                     else
@@ -241,10 +245,12 @@ void processAudioData(int16_t *data, uint16_t num_samples)
                         // chprintf((BaseSequentialStream *)&SD3, "New string found = %d\n", guitar_string);
                         // chprintf((BaseSequentialStream *)&SD3, "STRING CENTER \n");
                         // chThdSleepMilliseconds(200);
+                        clear_rgb_leds();
                         set_FSM_state(STRING_CENTER);
                     }
                     break;
                 default:
+                    clear_rgb_leds();
                     set_FSM_state(DO_NOTHING);
                     break;
                 }

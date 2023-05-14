@@ -179,14 +179,17 @@ void rotation_robot(bool angle_degree, bool clockwise, FSM_STATE prev_state)
             case FREQUENCY_POSITION:
                 // chprintf((BaseSequentialStream *)&SD3, "FREQUENCY POSITION -r \n");
                 // chThdSleepMilliseconds(100);
+                clear_rgb_leds();
                 increment_FSM_state();
                 break;
             case STRING_CENTER:
                 // chprintf((BaseSequentialStream *)&SD3, "STRING CENTER -r \n");
                 // chThdSleepMilliseconds(100);
+                clear_rgb_leds();
                 set_FSM_state(STRING_CENTER);
                 break;
             default:
+                clear_rgb_leds();
                 set_FSM_state(DO_NOTHING);
             }
         }
@@ -262,6 +265,7 @@ static THD_FUNCTION(LineTracking, arg)
 
         if (current_state == STRING_POSITION)
         {
+            set_all_rgb_leds(0, 255, 0);
             distance_reached = false;
             // difference between the measured distance and the distance of the current string
             distance_diff = VL53L0X_get_dist_mm() - string_distance[get_guitar_string() - 1];
@@ -270,6 +274,7 @@ static THD_FUNCTION(LineTracking, arg)
                 distance_reached = true;
                 // chprintf((BaseSequentialStream *)&SD3, "String position reached \n");
                 chprintf((BaseSequentialStream *)&SD3, "ROTATION -sp \n");
+                clear_rgb_leds();
                 increment_FSM_state();
             }
             // if the distance is not reached, follow the line
@@ -280,28 +285,38 @@ static THD_FUNCTION(LineTracking, arg)
             switch (previous_state)
             {
             case STRING_POSITION:
+                set_all_rgb_leds(255, 255, 0);
                 // rotation of 90deg, clocwise or anticlockwise depending on the pitch of the frequency
                 rotation_robot(ROTATION_90, get_pitch(), previous_state);
                 break;
             case FREQUENCY_POSITION:
+                set_all_rgb_leds(255, 255, 0);
                 // clocwise rotation of 180deg, the goal distance is behind the robot.
                 rotation_robot(ROTATION_180, ROTATION_CLOCKWISE, previous_state);
                 break;
             case STRING_CENTER:
                 if (distance_reached)
+                {
+                    set_all_rgb_leds(0, 255, 0);
                     // the robot is at the center. Rotation of 90deg to face the WALL_2
                     rotation_robot(ROTATION_90, wall_faced % 3, previous_state);
+                }
                 else
+                {
+                    set_all_rgb_leds(0, 255, 0);
                     // clocwise rotation of 180deg, the goal distance is behind the robot.
                     rotation_robot(ROTATION_180, ROTATION_CLOCKWISE, previous_state);
+                }
                 break;
             default:
+                clear_rgb_leds();
                 set_FSM_state(DO_NOTHING);
                 break;
             }
         }
         else if (current_state == FREQUENCY_POSITION)
         {
+            set_all_rgb_leds(255, 255, 0);
             distance_reached = false;
             // distance calculated from the WALL_1, using the frequency and the string detected
             uint16_t distance_frequency = CENTER_TO_WALL + (get_frequency() - get_string_frequency()) * string_coeff[get_guitar_string() - 1];
@@ -325,6 +340,7 @@ static THD_FUNCTION(LineTracking, arg)
             {
                 // the goal distance is behind the robot -> 180deg rotation
                 chprintf((BaseSequentialStream *)&SD3, "ROTATION -fp \n");
+                clear_rgb_leds();
                 set_FSM_state(ROTATION);
             }
             else // the robot reached his goal
@@ -336,12 +352,14 @@ static THD_FUNCTION(LineTracking, arg)
                 // chprintf((BaseSequentialStream *)&SD3, "FREQUENCY DETECTION -fp \n");
                 // chThdSleepMilliseconds(100);
                 // ready to detect a new frequency
+                clear_rgb_leds();
                 set_FSM_state(FREQUENCY_DETECTION);
             }
         }
 
         else if (current_state == STRING_CENTER)
         {
+            set_all_rgb_leds(0, 255, 0);
             distance_reached = false;
             // difference between the measured distance and the center line
             distance_diff = VL53L0X_get_dist_mm() - CENTER_TO_WALL;
@@ -356,6 +374,7 @@ static THD_FUNCTION(LineTracking, arg)
                 // chprintf((BaseSequentialStream *)&SD3, "ROTATION -sc \n");
                 // chThdSleepMilliseconds(100);
                 // the goal distance is behind the robot -> 180deg rotation
+                clear_rgb_leds();
                 set_FSM_state(ROTATION);
             }
             else // the robot reached his goal
@@ -367,6 +386,7 @@ static THD_FUNCTION(LineTracking, arg)
                 // chprintf((BaseSequentialStream *)&SD3, "ROTATION -sc \n");
                 // chThdSleepMilliseconds(100);
                 // 90deg rotation to face de WALL_2
+                clear_rgb_leds();
                 set_FSM_state(ROTATION);
             }
         }

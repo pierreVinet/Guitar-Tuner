@@ -34,5 +34,7 @@ FSM_STATE get_FSM_state(void);
 FSM_STATE get_FSM_previous_state(void);
 void set_FSM_state(FSM_STATE new_state);
 void increment_FSM_state(void);
+void set_all_rgb_leds(uint8_t red_val, uint8_t green_val, uint8_t blue_val);
+void clear_rgb_leds(void);
 
 #endif /* MAIN_H */
