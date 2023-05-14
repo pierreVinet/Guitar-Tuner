@@ -20,7 +20,8 @@
         "cstdlib": "c",
         "vl53l0x.h": "c",
         "motors_commands.h": "c",
-        "parameter.h": "c"
+        "parameter.h": "c",
+        "motion.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled",
     "editor.defaultFormatter": "ms-vscode.cpptools",

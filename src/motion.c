@@ -7,8 +7,8 @@
 #include <sensors/VL53L0X/VL53L0X.h>
 
 #include "audio_processing.h"
-#include "motion.h"
 #include "image_processing.h"
+#include "motion.h"
 #include "main.h"
 
 #define SPEED_MOTORS 400
@@ -27,7 +27,7 @@
 #define CENTER_TO_WALL 229
 
 // coefficients to convert the frequency difference into a distance, for each string
-static uint16_t string_coeff[] = {10, 13, 17, 22, 29, 33};
+static uint16_t string_coeff[] = {7, 12, 15, 19, 25, 30};
 // distance of each string from the WALL_2
 static uint16_t string_distance[] = {106, 161, 216, 269, 317, 367};
 
