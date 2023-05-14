@@ -9,36 +9,62 @@
 #include "audio_processing.h"
 #include "main.h"
 
-// minimum value for intensity to detect frequency
-#define MIN_VALUE_THRESHOLD 1000
+#define FFT_SIZE 1024
+
+// minimum value of intensity to detect a frequency
+#define MIN_INTENSITY_THRESHOLD 1000
 // we don't analyze before this index to not use resources for nothing
-#define MIN_FREQ 100
+#define MIN_INDEX 100
 // we don't analyze after this index to not use resources for nothing
-#define MAX_FREQ 500
+#define MAX_INDEX 500
+#define FREQUENCY_PRECISION 0.765517
 
-// semaphore
-static BSEMAPHORE_DECL(sendToComputer_sem, TRUE);
+// frequency for each string of the guitar and their respective range
+#define SIXTH_STRING_FREQ_MIN 76
+#define SIXTH_STRING_FREQ 82.41f
+#define SIXTH_STRING_FREQ_MAX 88
 
-// tableau avec les frequences exactes de chaque corde de la guitare (en ordre: de la première corde à la sixième)
+#define FIFTH_STRING_FREQ_MIN 103
+#define FIFTH_STRING_FREQ 110.00f
+#define FIFTH_STRING_FREQ_MAX 117
+
+#define FOURTH_STRING_FREQ_MIN 138
+#define FOURTH_STRING_FREQ 146.83f
+#define FOURTH_STRING_FREQ_MAX 156
+
+#define THIRD_STRING_FREQ_MIN 184
+#define THIRD_STRING_FREQ 196.00f
+#define THIRD_STRING_FREQ_MAX 208
+
+#define SECOND_STRING_FREQ_MIN 232
+#define SECOND_STRING_FREQ 246.94f
+#define SECOND_STRING_FREQ_MAX 262
+
+#define FIRST_STRING_FREQ_MIN 310
+#define FIRST_STRING_FREQ 329.63f
+#define FIRST_STRING_FREQ_MAX 350
+
+// float array containing the theoretical frequencies of each string of the guitar
 static float string_frequency[] = {FIRST_STRING_FREQ, SECOND_STRING_FREQ, THIRD_STRING_FREQ, FOURTH_STRING_FREQ, FIFTH_STRING_FREQ, SIXTH_STRING_FREQ};
-
 static float frequency;
 static GUITAR_STRING previous_guitar_string = NO_STRING;
 static GUITAR_STRING guitar_string = NO_STRING;
 
-// input buffers for each microphones coded in 32bits
-// 2 times FFT_SIZE because these arrays contain complex numbers (real + imaginary)
-// The data are arranged like [real0, imag0, real1, imag1, etc...]
-// 2 * FTT_SIZE * 4Bytes (32bits) = 8192 Bytes / microphone
+/*
+ *  Input complex buffer for the left microphone.
+ *  2 times FFT_SIZE because this array contain complex numbers (real + imaginary).
+ *  The data are arranged like [real0, imag0, real1, imag1, etc...].
+ */
 static float micLeft_cmplx_input[2 * FFT_SIZE];
-// outupt buffers coded in 32bits
-// Arrays containing the computed magnitude of the complex numbers
-// FTT_SIZE * 4Bytes (32bits) = 4096 Bytes / microphone
+// outupt buffer containing the computed magnitude of the complex numbers
 static float micLeft_output[FFT_SIZE];
 
 /*
- *	Wrapper to call a very optimized fft function provided by ARM
- *	which uses a lot of tricks to optimize the computations
+ *	Wrapper to call a very optimized fft function provided by ARM.
+ *
+ *	params :
+ *	uint16_t size		        Size of the FFT must be equak to 1024.
+ *  float *complex_buffer       Input complex buffer to apply the FFT to.
  */
 void doFFT_optimized(uint16_t size, float *complex_buffer)
 {
@@ -47,16 +73,19 @@ void doFFT_optimized(uint16_t size, float *complex_buffer)
 }
 
 /*
- *	Simple function used to detect the highest value in a buffer
- *	and to execute a motor command depending on it
+ *	Returns the index associated at the frequency with the highest amplitude.
+ *
+ *	params :
+ *	float *data			outupt buffer containing the computed magnitude
+ *                      of the complex numbers. Size: FTT_SIZE.
  */
 uint16_t find_highest_peak(float *data)
 {
-    float max_norm = MIN_VALUE_THRESHOLD;
+    float max_norm = MIN_INTENSITY_THRESHOLD;
     int16_t max_norm_index = 0;
 
     // search for the highest peak
-    for (uint16_t i = MIN_FREQ; i <= MAX_FREQ; i++)
+    for (uint16_t i = MIN_INDEX; i <= MAX_INDEX; i++)
     {
         if (data[i] > max_norm)
         {
@@ -64,45 +93,69 @@ uint16_t find_highest_peak(float *data)
             max_norm_index = i;
         }
     }
-
     return max_norm_index;
 }
 
-GUITAR_STRING find_guitar_string(void)
+/*
+ *	Search the string affiliated with the frequency detected.
+ */
+void find_guitar_string(void)
 {
     if (frequency > SIXTH_STRING_FREQ_MIN && frequency < SIXTH_STRING_FREQ_MAX)
     {
-        return SIXTH_STRING;
+        guitar_string = SIXTH_STRING;
     }
     else if (frequency > FIFTH_STRING_FREQ_MIN && frequency < FIFTH_STRING_FREQ_MAX)
     {
-        return FIFTH_STRING;
+        guitar_string = FIFTH_STRING;
     }
     else if (frequency > FOURTH_STRING_FREQ_MIN && frequency < FOURTH_STRING_FREQ_MAX)
     {
-        return FOURTH_STRING;
+        guitar_string = FOURTH_STRING;
     }
     else if (frequency > THIRD_STRING_FREQ_MIN && frequency < THIRD_STRING_FREQ_MAX)
     {
-        return THIRD_STRING;
+        guitar_string = THIRD_STRING;
     }
     else if (frequency > SECOND_STRING_FREQ_MIN && frequency < SECOND_STRING_FREQ_MAX)
     {
-        return SECOND_STRING;
+        guitar_string = SECOND_STRING;
     }
     else if (frequency > FIRST_STRING_FREQ_MIN && frequency < FIRST_STRING_FREQ_MAX)
     {
-        return FIRST_STRING;
+        guitar_string = FIRST_STRING;
     }
-    return NO_STRING;
+    guitar_string = NO_STRING;
 }
 
+/*
+ *	Returns the frequency detected.
+ */
+float get_frequency(void)
+{
+    return frequency;
+}
+
+/*
+ *	Returns the string of the frequency detected.
+ */
+GUITAR_STRING get_guitar_string(void)
+{
+    return guitar_string;
+}
+
+/*
+ *	Returns the theoretical frequency of the string detected.
+ */
 float get_string_frequency(void)
 {
     return string_frequency[guitar_string - 1];
 }
 
-// returns 1 if the pitch is higher than the string frequency, else returns 0
+/*
+ *	If the pitch is higher than the theoretical string frequency, returns true
+ *  If the pitch is lower than the theoretical string frequency, returns false
+ */
 bool get_pitch(void)
 {
     if (frequency - string_frequency[guitar_string - 1] >= 0)
@@ -129,29 +182,18 @@ void processAudioData(int16_t *data, uint16_t num_samples)
     // checks if the Finite State Machine is in the correct state
     if (get_FSM_state() == FREQUENCY_DETECTION)
     {
-        /*
-         *
-         *	We get 160 samples per mic every 10ms
-         *	So we fill the samples buffers to reach
-         *	1024 samples, then we compute the FFTs.
-         *
-         */
-
         static uint16_t nb_samples = 0;
 
-        // loop to fill the input buffers with the sample for the real part and 0 for the imaginary part
-        // data contains the sample of all 4 mics: [mic1, mic2, mic3, mic4, mic1, mic2...]
-        // if I want only the samples of 1 mic at 16kHz: i+= 4*1
-        // if I want only the samples of 1 mic at 800Hz: i+= 4*20 (=80)
+        /*
+         *  Loop to fill the input buffers with the sample for the real part and 0 for the imaginary part.
+         *  Data contains the sample of all 4 mics: [mic1, mic2, mic3, mic4, mic1, mic2...].
+         *  To get the samples of 1 mic at 800Hz: i+= 4*20 (= 80).
+         */
         for (uint16_t i = 0; i < num_samples; i += 80)
         {
-            // construct an array of complex numbers. Put 0 to the imaginary part
             micLeft_cmplx_input[nb_samples] = (float)data[i + MIC_LEFT];
-
             nb_samples++;
-
             micLeft_cmplx_input[nb_samples] = 0;
-
             nb_samples++;
 
             // stop when buffer is full
@@ -163,31 +205,20 @@ void processAudioData(int16_t *data, uint16_t num_samples)
 
         if (nb_samples >= (2 * FFT_SIZE))
         {
-            /*	FFT proccessing
-             *
-             *	This FFT function stores the results in the input buffer given.
-             *	This is an "In Place" function.
-             */
+            // This FFT function stores the results in the input buffer given.
             doFFT_optimized(FFT_SIZE, micLeft_cmplx_input);
-
-            /*	Magnitude processing
-             *
-             *	Computes the magnitude of the complex numbers and
-             *	stores them in a buffer of FFT_SIZE because it only contains
-             *	real numbers.
-             */
+            // Computes the magnitude of the complex numbers and stores them in a buffer of FFT_SIZE
             arm_cmplx_mag_f32(micLeft_cmplx_input, micLeft_output, FFT_SIZE);
 
             frequency = find_highest_peak(micLeft_output) * FREQUENCY_PRECISION;
             previous_guitar_string = guitar_string;
-            guitar_string = find_guitar_string();
+            find_guitar_string();
 
             if (guitar_string != NO_STRING)
             {
                 switch (get_FSM_previous_state())
                 {
                 case FREQUENCY_DETECTION:
-                    // change state of the FSM to the next step
                     // chprintf((BaseSequentialStream *)&SD3, "Frequency found = %f\n", frequency);
                     // chprintf((BaseSequentialStream *)&SD3, "string found = %d\n", guitar_string);
                     chprintf((BaseSequentialStream *)&SD3, "pitch = %d\n", get_pitch());
@@ -214,46 +245,11 @@ void processAudioData(int16_t *data, uint16_t num_samples)
                     }
                     break;
                 default:
-                    // chprintf((BaseSequentialStream *)&SD3, "DO NOTHING \n");
-                    // chThdSleepMilliseconds(100);
                     set_FSM_state(DO_NOTHING);
                     break;
                 }
             }
-
-            // chprintf((BaseSequentialStream *)&SD3, "highest peak = %d\n", find_highest_peak(micLeft_output));
             nb_samples = 0;
         }
     }
-}
-
-void wait_send_to_computer(void)
-{
-    chBSemWait(&sendToComputer_sem);
-}
-
-float *get_audio_buffer_ptr(BUFFER_NAME_t name)
-{
-    if (name == LEFT_CMPLX_INPUT)
-    {
-        return micLeft_cmplx_input;
-    }
-    else if (name == LEFT_OUTPUT)
-    {
-        return micLeft_output;
-    }
-    else
-    {
-        return NULL;
-    }
-}
-
-float get_frequency(void)
-{
-    return frequency;
-}
-
-GUITAR_STRING get_guitar_string(void)
-{
-    return guitar_string;
 }
