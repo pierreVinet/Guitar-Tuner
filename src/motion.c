@@ -25,12 +25,12 @@
 #define ROTATION_CLOCKWISE 1
 
 // distance between the center line and the walls 1 and 3
-#define CENTER_TO_WALL 225
+#define CENTER_TO_WALL 229
 
 // coefficients to convert the frequency difference into a distance, for each string
 static uint16_t string_coeff[] = {10, 13, 17, 22, 29, 33};
 // distance of each string from the WALL_2
-static uint16_t string_distance[] = {79, 133, 186, 240, 285, 335};
+static uint16_t string_distance[] = {106, 161, 216, 269, 317, 367};
 
 static bool line_detected = 0;
 static bool distance_reached = false;
