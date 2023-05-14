@@ -33,6 +33,7 @@ static uint16_t string_coeff[] = {10, 13, 17, 22, 29, 33};
 static uint16_t string_distance[] = {79, 133, 186, 240, 285, 335};
 
 static bool line_detected = 0;
+static bool distance_reached = false;
 static int16_t speed_correction = 0;
 static WALL_FACED wall_faced = WALL_2;
 
@@ -254,13 +255,10 @@ static THD_FUNCTION(LineTracking, arg)
     // difference between the measured distance and the goal distance
     int16_t distance_diff = 0;
     FSM_STATE current_state = 0;
-    FSM_STATE previous_state = 0;
-    static bool distance_reached = false;
 
     while (1)
     {
         current_state = get_FSM_state();
-        previous_state = get_FSM_previous_state();
         distance_diff = 0;
 
         if (current_state == STRING_POSITION)
@@ -280,40 +278,40 @@ static THD_FUNCTION(LineTracking, arg)
             // if the distance is not reached, follow the line
             line_tracking_while_condition(distance_reached, sign(distance_diff));
         }
-        else if (current_state == ROTATION)
-        {
-            switch (previous_state)
-            {
-            case STRING_POSITION:
-                set_all_rgb_leds(255, 255, 0);
-                // rotation of 90deg, clocwise or anticlockwise depending on the pitch of the frequency
-                rotation_robot(ROTATION_90, get_pitch(), previous_state);
-                break;
-            case FREQUENCY_POSITION:
-                set_all_rgb_leds(255, 255, 0);
-                // clocwise rotation of 180deg, the goal distance is behind the robot.
-                rotation_robot(ROTATION_180, ROTATION_CLOCKWISE, previous_state);
-                break;
-            case STRING_CENTER:
-                if (distance_reached)
-                {
-                    set_all_rgb_leds(0, 255, 0);
-                    // the robot is at the center. Rotation of 90deg to face the WALL_2
-                    rotation_robot(ROTATION_90, wall_faced % 3, previous_state);
-                }
-                else
-                {
-                    set_all_rgb_leds(0, 255, 0);
-                    // clocwise rotation of 180deg, the goal distance is behind the robot.
-                    rotation_robot(ROTATION_180, ROTATION_CLOCKWISE, previous_state);
-                }
-                break;
-            default:
-                clear_rgb_leds();
-                set_FSM_state(DO_NOTHING);
-                break;
-            }
-        }
+        // else if (current_state == ROTATION)
+        // {
+        //     switch (previous_state)
+        //     {
+        //     case STRING_POSITION:
+        //         set_all_rgb_leds(255, 255, 0);
+        //         // rotation of 90deg, clocwise or anticlockwise depending on the pitch of the frequency
+        //         rotation_robot(ROTATION_90, get_pitch(), previous_state);
+        //         break;
+        //     case FREQUENCY_POSITION:
+        //         set_all_rgb_leds(255, 255, 0);
+        //         // clocwise rotation of 180deg, the goal distance is behind the robot.
+        //         rotation_robot(ROTATION_180, ROTATION_CLOCKWISE, previous_state);
+        //         break;
+        //     case STRING_CENTER:
+        //         if (distance_reached)
+        //         {
+        //             set_all_rgb_leds(0, 255, 0);
+        //             // the robot is at the center. Rotation of 90deg to face the WALL_2
+        //             rotation_robot(ROTATION_90, wall_faced % 3, previous_state);
+        //         }
+        //         else
+        //         {
+        //             set_all_rgb_leds(0, 255, 0);
+        //             // clocwise rotation of 180deg, the goal distance is behind the robot.
+        //             rotation_robot(ROTATION_180, ROTATION_CLOCKWISE, previous_state);
+        //         }
+        //         break;
+        //     default:
+        //         clear_rgb_leds();
+        //         set_FSM_state(DO_NOTHING);
+        //         break;
+        //     }
+        // }
         else if (current_state == FREQUENCY_POSITION)
         {
             set_all_rgb_leds(255, 255, 0);
@@ -395,46 +393,59 @@ static THD_FUNCTION(LineTracking, arg)
     }
 }
 
-// static THD_WORKING_AREA(waRotation, 256);
-// static THD_FUNCTION(Rotation, arg)
-// {
+static THD_WORKING_AREA(waRotation, 256);
+static THD_FUNCTION(Rotation, arg)
+{
 
-//     chRegSetThreadName(__FUNCTION__);
-//     (void)arg;
+    chRegSetThreadName(__FUNCTION__);
+    (void)arg;
 
-//     FSM_STATE current_state = 0;
-//     FSM_STATE previous_state = 0;
+    FSM_STATE current_state = 0;
+    FSM_STATE previous_state = 0;
 
-//     while (1)
-//     {
-//         current_state = get_FSM_state();
-//         previous_state = get_FSM_previous_state();
+    while (1)
+    {
+        current_state = get_FSM_state();
+        previous_state = get_FSM_previous_state();
 
-//         if (current_state == ROTATION)
-//         {
-//             switch (previous_state)
-//             {
-//             case STRING_POSITION:
-//                 // en fonction de la frequence > au centre ou pas
-//                 rotation_robot(ROTATION_90, get_pitch(), previous_state);
-//                 break;
-//             case FREQUENCY_POSITION:
-//                 rotation_robot(ROTATION_180, ROTATION_CLOCKWISE, previous_state);
-//                 break;
-//             case STRING_CENTER:
-//                 if (distance_reached)
-//                     rotation_robot(ROTATION_90, wall_faced % 3, previous_state);
-//                 else
-//                     rotation_robot(ROTATION_180, ROTATION_CLOCKWISE, previous_state);
-//                 break;
-//             default:
-//                 break;
-//             }
-//         }
-//         // 100Hz
-//         chThdSleepMilliseconds(100);
-//     }
-// }
+        if (current_state == ROTATION)
+        {
+            switch (previous_state)
+            {
+            case STRING_POSITION:
+                set_all_rgb_leds(255, 255, 0);
+                // rotation of 90deg, clocwise or anticlockwise depending on the pitch of the frequency
+                rotation_robot(ROTATION_90, get_pitch(), previous_state);
+                break;
+            case FREQUENCY_POSITION:
+                set_all_rgb_leds(255, 255, 0);
+                // clocwise rotation of 180deg, the goal distance is behind the robot.
+                rotation_robot(ROTATION_180, ROTATION_CLOCKWISE, previous_state);
+                break;
+            case STRING_CENTER:
+                if (distance_reached)
+                {
+                    set_all_rgb_leds(0, 255, 0);
+                    // the robot is at the center. Rotation of 90deg to face the WALL_2
+                    rotation_robot(ROTATION_90, wall_faced % 3, previous_state);
+                }
+                else
+                {
+                    set_all_rgb_leds(0, 255, 0);
+                    // clocwise rotation of 180deg, the goal distance is behind the robot.
+                    rotation_robot(ROTATION_180, ROTATION_CLOCKWISE, previous_state);
+                }
+                break;
+            default:
+                clear_rgb_leds();
+                set_FSM_state(DO_NOTHING);
+                break;
+            }
+        }
+        // 100Hz
+        chThdSleepMilliseconds(10);
+    }
+}
 
 /*
  *  Start the LineTracking thread.
@@ -442,5 +453,5 @@ static THD_FUNCTION(LineTracking, arg)
 void line_tracking_start(void)
 {
     chThdCreateStatic(waLineTracking, sizeof(waLineTracking), NORMALPRIO, LineTracking, NULL);
-    // chThdCreateStatic(waRotation, sizeof(waRotation), NORMALPRIO, Rotation, NULL);
+    chThdCreateStatic(waRotation, sizeof(waRotation), NORMALPRIO, Rotation, NULL);
 }
