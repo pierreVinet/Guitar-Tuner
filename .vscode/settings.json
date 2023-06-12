@@ -1,0 +1,29 @@
+{
+    // Modify the com_port settings accordingly
+    // 1) Windows: check the com_port using the device manager, find the one with "GDB SERVER"
+    //      -> "com_port": "\\\\.\\COM11"
+    // 2) Linux: use "List Epuck2 ports" task
+    //      -> "com_port": "/dev/ttyACMx"
+    // MacOS: use the command "ls /dev/cu.*" and use the lowest one
+    //      -> "com_port": "/dev/cu.usbmodemEPUCKx"
+    "com_port": "\\\\.\\COM11",
+    "files.associations": {
+        "ch.h": "c",
+        "chprintf.h": "c",
+        "usbcfg.h": "c",
+        "po8030.h": "c",
+        "leds.h": "c",
+        "dcmi_camera.h": "c",
+        "messagebus.h": "c",
+        "cmath": "c",
+        "*.tcc": "c",
+        "cstdlib": "c",
+        "vl53l0x.h": "c",
+        "motors_commands.h": "c",
+        "parameter.h": "c",
+        "motion.h": "c"
+    },
+    "C_Cpp.errorSquiggles": "disabled",
+    "editor.defaultFormatter": "ms-vscode.cpptools",
+    "editor.formatOnSave": true,
+}

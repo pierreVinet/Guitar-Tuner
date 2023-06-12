@@ -1,6 +1,1 @@
-# MICRO-315-Student
-
-Welcome to the lab of MICRO-315
-<br>
-Every TP and its correction will be stored in separated git branch
-- 👉 Click [here](https://github.com/EPFL-MICRO-315/TPs-Student/tree/TP1_Exercise) to jump to the first TP
+In order to use Guitar Tuner you just have to print the two images in A3 format.  Cut them in the middle where the red line stops. Tape them together. Tape the final sheet to the the structure. Place the e-puck on the starting point. Take your guitar and have fun !
