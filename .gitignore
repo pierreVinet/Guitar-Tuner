@@ -5,8 +5,8 @@ ST/
 ST
 
 # Normally required only for TP3 and following
-e-puck2_main-processor/
-e-puck2_main-processor
+# e-puck2_main-processor/
+# e-puck2_main-processor
 build/
 .dep/
 *.a
@@ -17,8 +17,8 @@ build/
 # Windows specific files but always use if another user can work under Windows
 Thumbs.db
 
-.vscode/
-.vscode
+# .vscode/
+# .vscode
 
 pictures/
 pictures
