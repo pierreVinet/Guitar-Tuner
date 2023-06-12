@@ -3,11 +3,11 @@
     // Hover to view descriptions of existing attributes.
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
-    "configurations": [   
+    "configurations": [
         {
             "name": "BMP launch to main",
             "cwd": "${workspaceRoot}/src",
-            "executable": "${workspaceRoot}/src/build/Guitar_tuner.elf",
+            "executable": "${workspaceRoot}/src/build/guitar_tuner.elf",
             "request": "launch",
             "type": "cortex-debug",
             "servertype": "bmp",
@@ -23,7 +23,7 @@
         {
             "name": "BMP launch to reset (PC=0)",
             "cwd": "${workspaceRoot}/src",
-            "executable": "${workspaceRoot}/src/build/Guitar_tuner.elf",
+            "executable": "${workspaceRoot}/src/build/guitar_tuner.elf",
             "request": "launch",
             "type": "cortex-debug",
             "servertype": "bmp",
@@ -39,7 +39,7 @@
         {
             "name": "BMP attach",
             "cwd": "${workspaceRoot}/src",
-            "executable": "${workspaceRoot}/src/build/Guitar_tuner.elf",
+            "executable": "${workspaceRoot}/src/build/guitar_tuner.elf",
             "request": "attach",
             "type": "cortex-debug",
             "servertype": "bmp",

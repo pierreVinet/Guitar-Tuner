@@ -142,3 +142,8 @@ void __stack_chk_fail(void)
 {
 	chSysHalt("Stack smashing detected");
 }
+
+void __stack_chk_fail(void)
+{
+	chSysHalt("Stack smashing detected");
+}

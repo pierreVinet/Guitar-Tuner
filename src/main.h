@@ -38,3 +38,5 @@ void set_all_rgb_leds(uint8_t red_val, uint8_t green_val, uint8_t blue_val);
 void clear_rgb_leds(void);
 
 #endif /* MAIN_H */
+
+#endif
